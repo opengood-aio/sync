@@ -1,2 +1,3 @@
-# project-sync
+# Sync Project
+
 OpenGood project bulk configuration sync tool

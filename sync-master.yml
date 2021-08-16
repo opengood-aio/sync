@@ -1,0 +1,11 @@
+version: 1.0
+
+ci:
+  providers:
+    - providerType: GitHubActions
+      template:
+        src:
+          repo: central-workflow
+          path: workflows
+        target:
+          path: .github/workflows
