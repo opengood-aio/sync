@@ -1,6 +1,6 @@
 package io.opengood.project.sync.model
 
-data class CiTemplateSrc(
+data class CiTemplateSource(
     val repo: String,
     val path: String
 )

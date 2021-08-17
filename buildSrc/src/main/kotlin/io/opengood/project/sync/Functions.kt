@@ -16,16 +16,16 @@ import java.nio.file.Path
 
 internal fun createContext(workspaceDir: String): SyncContext {
     val dir = Path.of(workspaceDir).toFile()
-    (!dir.exists()) then { FileNotFoundException("Workspace directory cannot be found: $dir") }
+    (!dir.exists()) then { throw FileNotFoundException("Workspace directory cannot be found: $dir") }
     return SyncContext(workspaceDir = dir)
 }
 
 internal fun SyncMaster.getCiProvider(providerType: CiProviderType): CiProvider =
-    ci.providers.first { it.providerType == providerType }
+    ci.providers.first { it.name == providerType }
 
 internal fun getSyncMaster(dir: File): SyncMaster {
     val file = Path.of("$dir/${Files.SYNC_MASTER}").toFile()
-    (!file.exists()) then { FileNotFoundException("Sync master file cannot be found: $file") }
+    (!file.exists()) then { throw FileNotFoundException("Sync master file cannot be found: $file") }
     return getSyncObject<SyncMaster>(file).apply {
         metadata = SyncMetadata(
             dir = file.parentFile,

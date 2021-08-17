@@ -2,7 +2,7 @@ version: 1.0
 
 ci:
   providers:
-    - providerType: GitHubActions
+    - name: GitHubActions
       template:
         src:
           repo: central-workflow

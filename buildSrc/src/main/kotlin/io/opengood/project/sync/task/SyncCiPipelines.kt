@@ -83,6 +83,10 @@ open class SyncCiPipelines : BaseTask() {
                         printDone()
                     }
             }
+
+            printSuccess("Completed sync of CI pipelines for project: ${project.name}")
+            printBlankLine()
+            printBlankLine()
         }
         printSuccess("Successfully synced CI pipelines")
         printComplete(TASK_NAME)
