@@ -1,4 +1,5 @@
 import io.opengood.project.sync.task.SyncCiPipelines
+import io.opengood.project.sync.task.SyncConfigGradlePlugin
 import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -32,9 +33,6 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib"))
-
-    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:_")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:_")
 }
 
 with(tasks) {
@@ -47,7 +45,13 @@ with(tasks) {
         }
     }
 
+    val workspace = project.projectDir.parentFile.absolutePath
+
     register<SyncCiPipelines>(SyncCiPipelines.TASK_NAME) {
-        workspaceDir = project.projectDir.parentFile.absolutePath
+        workspaceDir = workspace
+    }
+
+    register<SyncConfigGradlePlugin>(SyncConfigGradlePlugin.TASK_NAME) {
+        workspaceDir = workspace
     }
 }

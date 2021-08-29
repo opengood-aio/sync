@@ -1,19 +1,84 @@
 package io.opengood.project.sync.task
 
+import io.opengood.project.sync.createContext
+import io.opengood.project.sync.getSyncMaster
+import io.opengood.project.sync.getSyncProjects
+import io.opengood.project.sync.model.SyncContext
+import io.opengood.project.sync.model.SyncMaster
+import io.opengood.project.sync.model.SyncProject
 import org.gradle.api.DefaultTask
 import org.gradle.internal.logging.text.StyledTextOutput.Style
 import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.kotlin.dsl.support.serviceOf
+import java.nio.file.Path
 
 open class BaseTask : DefaultTask() {
 
     private val out = project.serviceOf<StyledTextOutputFactory>().create("colored-output")
+
+    protected fun execute(
+        name: String,
+        displayName: String,
+        workspaceDir: String,
+        projectDir: String,
+        task: (context: SyncContext, master: SyncMaster, project: SyncProject) -> Unit
+    ) {
+        printHeader(name)
+        printExecute(name)
+
+        val context = createContext(workspaceDir = workspaceDir)
+        printInfo("Sync context...")
+        printInfo("Workspace directory: '${context.workspaceDir}'")
+        printBlankLine()
+
+        val master = getSyncMaster(Path.of(projectDir).toFile())
+        printInfo("Sync master info...")
+        with(master) {
+            printInfo("Directory: '$dir'")
+            printInfo("File: '$file'")
+            printInfo("Version: '$version'")
+            printBlankLine()
+        }
+
+        val projects = getSyncProjects(context)
+        projects.forEach { project ->
+            with(project) {
+                printInfo("Project info...")
+                printInfo("Name: '$name'")
+                printInfo("Directory: '$dir'")
+                printBlankLine()
+
+                printInfo("Sync info...")
+                printInfo("File: '$file'")
+                printInfo("Version: '$version'")
+                printBlankLine()
+
+                printInfo("CI info...")
+                with(ci) {
+                    printInfo("Provider type: '$provider'")
+                    printInfo("Template: '$template'")
+                    printBlankLine()
+                }
+            }
+
+            task.invoke(context, master, project)
+
+            printSuccess("Completed sync of $displayName for project: ${project.name}")
+            printBlankLine()
+            printDivider()
+        }
+        printSuccess("Successfully synced $displayName")
+        printComplete(name)
+    }
 
     protected fun printBlankLine() =
         println()
 
     protected fun printComplete(name: String) =
         print(Style.ProgressStatus, true, "Completed $name task!")
+
+    protected fun printDivider() =
+        print(Style.Header, true, "----------------------------------------------")
 
     protected fun printDone() =
         print(Style.Success, true, "Done!")

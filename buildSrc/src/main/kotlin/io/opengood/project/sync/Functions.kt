@@ -8,7 +8,6 @@ import io.opengood.project.sync.enumeration.CiProviderType
 import io.opengood.project.sync.model.CiProvider
 import io.opengood.project.sync.model.SyncContext
 import io.opengood.project.sync.model.SyncMaster
-import io.opengood.project.sync.model.SyncMetadata
 import io.opengood.project.sync.model.SyncProject
 import java.io.File
 import java.io.FileNotFoundException
@@ -20,17 +19,15 @@ internal fun createContext(workspaceDir: String): SyncContext {
     return SyncContext(workspaceDir = dir)
 }
 
-internal fun SyncMaster.getCiProvider(providerType: CiProviderType): CiProvider =
-    ci.providers.first { it.name == providerType }
+internal fun SyncMaster.getCiProvider(provider: CiProviderType): CiProvider =
+    ci.providers.first { it.name == provider }
 
 internal fun getSyncMaster(dir: File): SyncMaster {
     val file = Path.of("$dir/${Files.SYNC_MASTER}").toFile()
     (!file.exists()) then { throw FileNotFoundException("Sync master file cannot be found: $file") }
     return getSyncObject<SyncMaster>(file).apply {
-        metadata = SyncMetadata(
-            dir = file.parentFile,
-            syncFile = file
-        )
+        this.dir = file.parentFile
+        this.file = file
     }
 }
 
@@ -45,13 +42,11 @@ internal fun getSyncProjects(context: SyncContext): List<SyncProject> =
         .filter { it.name == Files.SYNC }
         .toList()
         .map { file ->
-            val project = getSyncObject<SyncProject>(file)
-            project.apply {
-                name = file.parentFile.name
-                metadata = SyncMetadata(
-                    dir = file.parentFile,
-                    syncFile = file
-                )
+            getSyncObject<SyncProject>(file).apply {
+                this.name = file.parentFile.name
+                this.dir = file.parentFile
+                this.file = file
+                this.versions = File(file.parentFile, Files.VERSION_PROPERTIES)
             }
         }
 
