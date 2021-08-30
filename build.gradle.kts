@@ -1,3 +1,4 @@
+import io.opengood.project.sync.task.SyncAll
 import io.opengood.project.sync.task.SyncCiPipelines
 import io.opengood.project.sync.task.SyncPlugins
 import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
@@ -46,6 +47,13 @@ with(tasks) {
     }
 
     val workspace = project.projectDir.parentFile.absolutePath
+
+    register<SyncAll>(SyncAll.TASK_NAME) {
+        dependsOn(
+            SyncCiPipelines.TASK_NAME,
+            SyncPlugins.TASK_NAME,
+        )
+    }
 
     register<SyncCiPipelines>(SyncCiPipelines.TASK_NAME) {
         workspaceDir = workspace
