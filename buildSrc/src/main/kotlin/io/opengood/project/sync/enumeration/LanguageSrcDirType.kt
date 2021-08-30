@@ -5,10 +5,10 @@ import com.fasterxml.jackson.annotation.JsonFormat.Shape
 import com.fasterxml.jackson.annotation.JsonValue
 
 @JsonFormat(shape = Shape.OBJECT)
-enum class LanguageType(@JsonValue private val value: String) {
-    GROOVY("Groovy"),
-    JAVA("Java"),
-    KOTLIN("Kotlin"),
+enum class LanguageSrcDirType(@JsonValue private val value: String) {
+    GROOVY("src/main/groovy"),
+    JAVA("src/main/java"),
+    KOTLIN("src/main/kotlin"),
     ;
 
     override fun toString() = value

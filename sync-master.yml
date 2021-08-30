@@ -2,10 +2,23 @@ version: 1.0
 
 ci:
   providers:
-    - name: GitHubActions
+    - name: GitHub Actions
       template:
         src:
           repo: central-workflow
           path: workflows
         target:
           path: .github/workflows
+
+plugins:
+  - name: opengood-config-plugin
+    type: Gradle
+    uri: https://plugins.gradle.org/plugin/io.opengood.gradle.config
+    key: plugin.io.opengood.gradle.config
+    file: versions.properties
+
+  - name: opengood-settings-plugin
+    type: Gradle
+    uri: https://plugins.gradle.org/plugin/io.opengood.gradle.settings
+    key: io.opengood.gradle.settings
+    file: settings.gradle

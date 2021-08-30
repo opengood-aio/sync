@@ -1,5 +1,13 @@
 package io.opengood.project.sync.enumeration
 
-enum class CiProviderType {
-    GitHubActions
+import com.fasterxml.jackson.annotation.JsonFormat
+import com.fasterxml.jackson.annotation.JsonFormat.Shape
+import com.fasterxml.jackson.annotation.JsonValue
+
+@JsonFormat(shape = Shape.OBJECT)
+enum class CiProviderType(@JsonValue private val value: String) {
+    GITHUB_ACTIONS("GitHub Actions")
+    ;
+
+    override fun toString() = value
 }

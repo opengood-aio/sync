@@ -1,5 +1,5 @@
 import io.opengood.project.sync.task.SyncCiPipelines
-import io.opengood.project.sync.task.SyncConfigGradlePlugin
+import io.opengood.project.sync.task.SyncPlugins
 import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -51,7 +51,7 @@ with(tasks) {
         workspaceDir = workspace
     }
 
-    register<SyncConfigGradlePlugin>(SyncConfigGradlePlugin.TASK_NAME) {
+    register<SyncPlugins>(SyncPlugins.TASK_NAME) {
         workspaceDir = workspace
     }
 }

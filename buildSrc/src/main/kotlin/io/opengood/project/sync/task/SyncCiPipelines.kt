@@ -27,7 +27,7 @@ open class SyncCiPipelines : BaseTask() {
             displayName = TASK_DISPLAY_NAME,
             workspaceDir = workspaceDir,
             projectDir = project.projectDir.absolutePath
-        ) { context: SyncContext, master: SyncMaster, project: SyncProject ->
+        ) { context: SyncContext, master: SyncMaster, project: SyncProject, _ ->
             val provider = master.getCiProvider(project.ci.provider)
             with(provider.template) {
                 val srcDir = File("${context.workspaceDir}/${src.repo}/${src.path}/${project.ci.template}")

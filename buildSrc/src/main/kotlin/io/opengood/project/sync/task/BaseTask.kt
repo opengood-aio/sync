@@ -1,8 +1,10 @@
 package io.opengood.project.sync.task
 
 import io.opengood.project.sync.createContext
+import io.opengood.project.sync.getBuildInfo
 import io.opengood.project.sync.getSyncMaster
 import io.opengood.project.sync.getSyncProjects
+import io.opengood.project.sync.model.BuildInfo
 import io.opengood.project.sync.model.SyncContext
 import io.opengood.project.sync.model.SyncMaster
 import io.opengood.project.sync.model.SyncProject
@@ -21,7 +23,7 @@ open class BaseTask : DefaultTask() {
         displayName: String,
         workspaceDir: String,
         projectDir: String,
-        task: (context: SyncContext, master: SyncMaster, project: SyncProject) -> Unit
+        task: (context: SyncContext, master: SyncMaster, project: SyncProject, buildInfo: BuildInfo) -> Unit
     ) {
         printHeader(name)
         printExecute(name)
@@ -42,6 +44,7 @@ open class BaseTask : DefaultTask() {
 
         val projects = getSyncProjects(context)
         projects.forEach { project ->
+            val buildInfo = getBuildInfo(project.dir)
             with(project) {
                 printInfo("Project info...")
                 printInfo("Name: '$name'")
@@ -53,6 +56,14 @@ open class BaseTask : DefaultTask() {
                 printInfo("Version: '$version'")
                 printBlankLine()
 
+                with(buildInfo) {
+                    printInfo("Build info...")
+                    printInfo("Language: '$language'")
+                    printInfo("Build Gradle: '$buildGradle'")
+                    printInfo("Settings Gradle: '$settingsGradle'")
+                    printBlankLine()
+                }
+
                 printInfo("CI info...")
                 with(ci) {
                     printInfo("Provider type: '$provider'")
@@ -61,7 +72,7 @@ open class BaseTask : DefaultTask() {
                 }
             }
 
-            task.invoke(context, master, project)
+            task.invoke(context, master, project, buildInfo)
 
             printSuccess("Completed sync of $displayName for project: ${project.name}")
             printBlankLine()
