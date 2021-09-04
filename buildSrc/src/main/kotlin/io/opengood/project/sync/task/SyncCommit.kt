@@ -24,13 +24,24 @@ open class SyncCommit : BaseTask() {
             projectDir = project.projectDir.absolutePath
         ) { _, _, project: SyncProject, _ ->
             shellRun(project.dir) {
-                if (git.status().isNotBlank()) {
+                printInfo("Determining Git changes for '${project.name}' in local Git repo '${project.dir}'")
+                val status = git.status()
+                printInfo("Git status:\n$status")
+
+                if (status.isNotBlank()) {
+                    printProgress("Committing all changes to local Git repo...")
                     git.commitAllChanges("Make project sync changes")
+                    printDone()
+
+                    printProgress("Pulling potential changes from remote Git repo...")
                     git.pull()
+                    printDone()
+
+                    printProgress("Pushing changes to remote Git repo...")
                     git.pushToOrigin()
-                } else {
-                    git.currentBranch()
+                    printDone()
                 }
+                git.currentBranch()
             }
         }
     }
