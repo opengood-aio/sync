@@ -61,11 +61,11 @@ with(tasks) {
         workspaceDir = workspace
     }
 
-    register<SyncCommit>(SyncCommit.TASK_NAME) {
+    register<SyncVersions>(SyncVersions.TASK_NAME) {
         workspaceDir = workspace
     }
 
-    register<SyncVersions>(SyncVersions.TASK_NAME) {
+    register<SyncCommit>(SyncCommit.TASK_NAME) {
         workspaceDir = workspace
     }
 }
