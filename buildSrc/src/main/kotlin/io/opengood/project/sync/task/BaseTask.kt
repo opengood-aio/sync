@@ -33,53 +33,69 @@ open class BaseTask : DefaultTask() {
         printInfo("Workspace directory: '${context.workspaceDir}'")
         printBlankLine()
 
-        val master = getSyncMaster(Path.of(projectDir).toFile())
-        printInfo("Sync master info...")
-        with(master) {
-            printInfo("Directory: '$dir'")
-            printInfo("File: '$file'")
-            printInfo("Version: '$version'")
-            printBlankLine()
+        val master = try {
+            getSyncMaster(Path.of(projectDir).toFile())
+        } catch (e: Exception) {
+            printException("Unable to parse sync master file", e)
+            printComplete(name)
+            SyncMaster.EMPTY
         }
 
-        val projects = getSyncProjects(context)
-        projects.forEach { project ->
-            val buildInfo = getBuildInfo(project.dir)
-            with(project) {
-                printInfo("Project info...")
-                printInfo("Name: '$name'")
+        if (master != SyncMaster.EMPTY) {
+            printInfo("Sync master info...")
+            with(master) {
                 printInfo("Directory: '$dir'")
-                printBlankLine()
-
-                printInfo("Sync info...")
                 printInfo("File: '$file'")
                 printInfo("Version: '$version'")
                 printBlankLine()
-
-                with(buildInfo) {
-                    printInfo("Build info...")
-                    printInfo("Language: '$language'")
-                    printInfo("Build Gradle: '$buildGradle'")
-                    printInfo("Settings Gradle: '$settingsGradle'")
-                    printBlankLine()
-                }
-
-                printInfo("CI info...")
-                with(ci) {
-                    printInfo("Provider type: '$provider'")
-                    printInfo("Template: '$template'")
-                    printBlankLine()
-                }
             }
 
-            task.invoke(context, master, project, buildInfo)
+            val projects = try {
+                getSyncProjects(context)
+            } catch (e: Exception) {
+                printException("Unable to parse sync files", e)
+                printComplete(name)
+                emptyList()
+            }
 
-            printSuccess("Completed sync of $displayName for project: ${project.name}")
-            printBlankLine()
-            printDivider()
+            projects.forEach { project ->
+                val buildInfo = getBuildInfo(project.dir)
+                with(project) {
+                    printInfo("Project info...")
+                    printInfo("Name: '$name'")
+                    printInfo("Directory: '$dir'")
+                    printBlankLine()
+
+                    printInfo("Sync info...")
+                    printInfo("File: '$file'")
+                    printInfo("Version: '$version'")
+                    printBlankLine()
+
+                    with(buildInfo) {
+                        printInfo("Build info...")
+                        printInfo("Language: '$language'")
+                        printInfo("Build Gradle: '$buildGradle'")
+                        printInfo("Settings Gradle: '$settingsGradle'")
+                        printBlankLine()
+                    }
+
+                    printInfo("CI info...")
+                    with(ci) {
+                        printInfo("Provider type: '$provider'")
+                        printInfo("Template: '$template'")
+                        printBlankLine()
+                    }
+                }
+
+                task.invoke(context, master, project, buildInfo)
+
+                printSuccess("Completed sync of $displayName for project: ${project.name}")
+                printBlankLine()
+                printDivider()
+            }
+            printSuccess("Successfully synced $displayName")
+            printComplete(name)
         }
-        printSuccess("Successfully synced $displayName")
-        printComplete(name)
     }
 
     protected fun printBlankLine() =
@@ -93,6 +109,9 @@ open class BaseTask : DefaultTask() {
 
     protected fun printDone() =
         print(Style.Success, true, "Done!")
+
+    protected fun printException(message: String, e: Exception) =
+        print(Style.Failure, false, "$message:\n${e.stackTraceToString()}")
 
     protected fun printExecute(name: String) =
         print(Style.ProgressStatus, true, "Executing $name task...")

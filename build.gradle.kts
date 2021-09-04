@@ -1,6 +1,7 @@
 import io.opengood.project.sync.task.SyncAll
 import io.opengood.project.sync.task.SyncCiPipelines
-import io.opengood.project.sync.task.SyncPlugins
+import io.opengood.project.sync.task.SyncCommit
+import io.opengood.project.sync.task.SyncVersions
 import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -51,7 +52,8 @@ with(tasks) {
     register<SyncAll>(SyncAll.TASK_NAME) {
         dependsOn(
             SyncCiPipelines.TASK_NAME,
-            SyncPlugins.TASK_NAME,
+            SyncCommit.TASK_NAME,
+            SyncVersions.TASK_NAME,
         )
     }
 
@@ -59,7 +61,11 @@ with(tasks) {
         workspaceDir = workspace
     }
 
-    register<SyncPlugins>(SyncPlugins.TASK_NAME) {
+    register<SyncCommit>(SyncCommit.TASK_NAME) {
+        workspaceDir = workspace
+    }
+
+    register<SyncVersions>(SyncVersions.TASK_NAME) {
         workspaceDir = workspace
     }
 }

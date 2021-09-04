@@ -9,4 +9,11 @@ data class SyncProject(
     lateinit var name: String
     lateinit var dir: File
     lateinit var file: File
+
+    companion object {
+        val EMPTY = SyncProject(
+            version = "",
+            ci = CiConfig.EMPTY
+        )
+    }
 }

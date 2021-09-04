@@ -10,15 +10,31 @@ ci:
         target:
           path: .github/workflows
 
-plugins:
+versioning:
+  - name: gradle-wrapper
+    type: Gradle Wrapper
+    uri: https://gradle.org/install
+    key: distributionUrl
+    file: gradle/wrapper/gradle-wrapper.properties
+    pattern: '%s=https\://services.gradle.org/distributions/gradle-%s-all.zip'
+
   - name: opengood-config-plugin
-    type: Gradle
+    type: Gradle Plugin
     uri: https://plugins.gradle.org/plugin/io.opengood.gradle.config
     key: plugin.io.opengood.gradle.config
     file: versions.properties
+    pattern: '%s=%s'
 
   - name: opengood-settings-plugin
-    type: Gradle
+    type: Gradle Plugin
     uri: https://plugins.gradle.org/plugin/io.opengood.gradle.settings
     key: io.opengood.gradle.settings
     file: settings.gradle
+    pattern: '    id("%s") version "%s"'
+
+  - name: refresh-versions-plugin
+    type: Gradle Plugin
+    uri: https://plugins.gradle.org/plugin/de.fayard.refreshVersions
+    key: de.fayard.refreshVersions
+    file: settings.gradle
+    pattern: '    id("%s") version "%s"'

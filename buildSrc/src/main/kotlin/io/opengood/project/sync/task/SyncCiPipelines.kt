@@ -1,10 +1,10 @@
 package io.opengood.project.sync.task
 
 import io.opengood.project.sync.getCiProvider
+import io.opengood.project.sync.model.CiConfig
 import io.opengood.project.sync.model.SyncContext
 import io.opengood.project.sync.model.SyncMaster
 import io.opengood.project.sync.model.SyncProject
-import io.opengood.project.sync.then
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
 import java.io.File
@@ -28,24 +28,26 @@ open class SyncCiPipelines : BaseTask() {
             workspaceDir = workspaceDir,
             projectDir = project.projectDir.absolutePath
         ) { context: SyncContext, master: SyncMaster, project: SyncProject, _ ->
-            val provider = master.getCiProvider(project.ci.provider)
-            with(provider.template) {
-                val srcDir = File("${context.workspaceDir}/${src.repo}/${src.path}/${project.ci.template}")
-                (!srcDir.exists()) then { throw FileNotFoundException("CI pipeline templates source directory cannot be found: $srcDir") }
+            if (project.ci != CiConfig.EMPTY) {
+                val provider = master.getCiProvider(project.ci.provider)
+                with(provider.template) {
+                    val srcDir = File("${context.workspaceDir}/${src.repo}/${src.path}/${project.ci.template}")
+                    if (!srcDir.exists()) { throw FileNotFoundException("CI pipeline templates source directory cannot be found: $srcDir") }
 
-                val targetDir = File("${project.dir}/${target.path}")
-                (!targetDir.exists()) then { throw FileNotFoundException("CI pipeline target directory cannot be found: $targetDir") }
+                    val targetDir = File("${project.dir}/${target.path}")
+                    if (!targetDir.exists()) { throw FileNotFoundException("CI pipeline target directory cannot be found: $targetDir") }
 
-                printInfo("Copying CI provider '${project.ci.provider}' pipeline templates from source directory: '$srcDir'...")
-                printBlankLine()
+                    printInfo("Copying CI provider '${project.ci.provider}' pipeline templates from source directory: '$srcDir'...")
+                    printBlankLine()
 
-                srcDir.walkTopDown()
-                    .filter { !it.isDirectory }
-                    .forEach { file ->
-                        printProgress("Copying CI provider pipeline template '${file.name}' to target directory: '$targetDir'")
-                        file.copyTo(File("$targetDir/${file.name}"), true)
-                        printDone()
-                    }
+                    srcDir.walkTopDown()
+                        .filter { !it.isDirectory }
+                        .forEach { file ->
+                            printProgress("Copying CI provider pipeline template '${file.name}' to target directory: '$targetDir'")
+                            file.copyTo(File("$targetDir/${file.name}"), true)
+                            printDone()
+                        }
+                }
             }
         }
     }

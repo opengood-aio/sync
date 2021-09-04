@@ -26,7 +26,7 @@ internal fun buildGradleType(dir: File): BuildGradleType =
 
 internal fun createContext(workspaceDir: String): SyncContext {
     val dir = Path.of(workspaceDir).toFile()
-    (!dir.exists()) then { throw FileNotFoundException("Workspace directory cannot be found: $dir") }
+    if (!dir.exists()) { throw FileNotFoundException("Workspace directory cannot be found: $dir") }
     return SyncContext(workspaceDir = dir)
 }
 
@@ -42,7 +42,7 @@ internal fun SyncMaster.getCiProvider(provider: CiProviderType): CiProvider =
 
 internal fun getSyncMaster(dir: File): SyncMaster {
     val file = Path.of("$dir/${SyncFileType.MASTER}").toFile()
-    (!file.exists()) then { throw FileNotFoundException("Sync master file cannot be found: $file") }
+    if (!file.exists()) { throw FileNotFoundException("Sync master file cannot be found: $file") }
     return getSyncObject<SyncMaster>(file).apply {
         this.dir = file.parentFile
         this.file = file
@@ -91,6 +91,3 @@ internal fun settingsGradleType(dir: File): SettingsGradleType =
         isKotlin(dir) -> SettingsGradleType.KOTLIN
         else -> SettingsGradleType.GROOVY
     }
-
-internal infix fun <T> Boolean.then(param: () -> T): T? =
-    if (this) param() else null

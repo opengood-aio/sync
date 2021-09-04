@@ -6,7 +6,8 @@ import com.fasterxml.jackson.annotation.JsonValue
 
 @JsonFormat(shape = Shape.OBJECT)
 enum class CiProviderType(@JsonValue private val value: String) {
-    GITHUB_ACTIONS("GitHub Actions")
+    GITHUB_ACTIONS("GitHub Actions"),
+    NONE("None"),
     ;
 
     override fun toString() = value
