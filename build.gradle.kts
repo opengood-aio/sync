@@ -52,8 +52,8 @@ with(tasks) {
     register<SyncAll>(SyncAll.TASK_NAME) {
         dependsOn(
             SyncCiPipelines.TASK_NAME,
-            SyncCommit.TASK_NAME,
             SyncVersions.TASK_NAME,
+            SyncCommit.TASK_NAME,
         )
     }
 

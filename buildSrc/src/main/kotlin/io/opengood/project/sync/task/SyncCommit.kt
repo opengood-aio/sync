@@ -24,9 +24,13 @@ open class SyncCommit : BaseTask() {
             projectDir = project.projectDir.absolutePath
         ) { _, _, project: SyncProject, _ ->
             shellRun(project.dir) {
-                git.addAll()
-                git.commit("Make project sync changes")
-                git.pushToOrigin()
+                if (git.status().isNotBlank()) {
+                    git.commitAllChanges("Make project sync changes")
+                    git.pull()
+                    git.pushToOrigin()
+                } else {
+                    git.currentBranch()
+                }
             }
         }
     }
