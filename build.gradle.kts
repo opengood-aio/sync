@@ -53,7 +53,7 @@ with(tasks) {
         dependsOn(
             SyncCiPipelines.TASK_NAME,
             SyncVersions.TASK_NAME,
-            SyncCommit.TASK_NAME,
+            SyncCommit.TASK_NAME
         )
     }
 
@@ -63,9 +63,11 @@ with(tasks) {
 
     register<SyncVersions>(SyncVersions.TASK_NAME) {
         workspaceDir = workspace
+        mustRunAfter(SyncCiPipelines.TASK_NAME)
     }
 
     register<SyncCommit>(SyncCommit.TASK_NAME) {
         workspaceDir = workspace
+        mustRunAfter(SyncVersions.TASK_NAME)
     }
 }
