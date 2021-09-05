@@ -24,9 +24,10 @@ open class SyncCommit : BaseTask() {
             projectDir = project.projectDir.absolutePath
         ) { _, _, project: SyncProject, _ ->
             shellRun(project.dir) {
-                printInfo("Determining Git changes for '${project.name}' in local Git repo '${project.dir}'")
+                printInfo("Determining project changes for '${project.name}' in local Git repo '${project.dir}'")
                 val status = git.status()
-                printInfo("Git status:\n$status")
+                printInfo("Git status:")
+                printInfo(status)
 
                 if (status.isNotBlank()) {
                     printProgress("Committing all changes to local Git repo...")
@@ -41,7 +42,7 @@ open class SyncCommit : BaseTask() {
                     git.pushToOrigin()
                     printDone()
                 }
-                git.currentBranch()
+                ""
             }
         }
     }

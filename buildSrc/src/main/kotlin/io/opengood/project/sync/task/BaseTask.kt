@@ -58,40 +58,42 @@ open class BaseTask : DefaultTask() {
                 emptyList()
             }
 
-            projects.forEach { project ->
-                val buildInfo = getBuildInfo(project.dir)
-                with(project) {
-                    printInfo("Project info...")
-                    printInfo("Name: '$name'")
-                    printInfo("Directory: '$dir'")
-                    printBlankLine()
-
-                    printInfo("Sync info...")
-                    printInfo("File: '$file'")
-                    printInfo("Version: '$version'")
-                    printBlankLine()
-
-                    with(buildInfo) {
-                        printInfo("Build info...")
-                        printInfo("Language: '$language'")
-                        printInfo("Build Gradle: '$buildGradle'")
-                        printInfo("Settings Gradle: '$settingsGradle'")
+            if (projects.isNotEmpty()) {
+                projects.forEach { project ->
+                    val buildInfo = getBuildInfo(project.dir)
+                    with(project) {
+                        printInfo("Project info...")
+                        printInfo("Name: '$name'")
+                        printInfo("Directory: '$dir'")
                         printBlankLine()
+
+                        printInfo("Sync info...")
+                        printInfo("File: '$file'")
+                        printInfo("Version: '$version'")
+                        printBlankLine()
+
+                        with(buildInfo) {
+                            printInfo("Build info...")
+                            printInfo("Language: '$language'")
+                            printInfo("Build Gradle: '$buildGradle'")
+                            printInfo("Settings Gradle: '$settingsGradle'")
+                            printBlankLine()
+                        }
+
+                        printInfo("CI info...")
+                        with(ci) {
+                            printInfo("Provider type: '$provider'")
+                            printInfo("Template: '$template'")
+                            printBlankLine()
+                        }
                     }
 
-                    printInfo("CI info...")
-                    with(ci) {
-                        printInfo("Provider type: '$provider'")
-                        printInfo("Template: '$template'")
-                        printBlankLine()
-                    }
+                    task.invoke(context, master, project, buildInfo)
+
+                    printSuccess("Completed sync of $displayName for project: ${project.name}")
+                    printBlankLine()
+                    printDivider()
                 }
-
-                task.invoke(context, master, project, buildInfo)
-
-                printSuccess("Completed sync of $displayName for project: ${project.name}")
-                printBlankLine()
-                printDivider()
             }
             printSuccess("Successfully synced $displayName")
             printComplete(name)
@@ -111,7 +113,7 @@ open class BaseTask : DefaultTask() {
         print(Style.Success, true, "Done!")
 
     protected fun printException(message: String, e: Exception) =
-        print(Style.Failure, false, "$message:\n${e.stackTraceToString()}")
+        print(Style.Failure, false, "$message:", e.stackTraceToString())
 
     protected fun printExecute(name: String) =
         print(Style.ProgressStatus, true, "Executing $name task...")
