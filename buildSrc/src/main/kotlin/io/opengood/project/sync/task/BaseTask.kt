@@ -63,6 +63,7 @@ open class BaseTask : DefaultTask() {
                     val buildInfo = try {
                         getBuildInfo(project.dir)
                     } catch (e: Exception) {
+                        printException("Unable to get build info", e)
                         BuildInfo.EMPTY
                     }
 
@@ -120,7 +121,7 @@ open class BaseTask : DefaultTask() {
         print(Style.Success, true, "Done!")
 
     protected fun printException(message: String, e: Exception) =
-        print(Style.Failure, false, "$message:", e.stackTraceToString())
+        print(Style.Error, false, "$message:", e.stackTraceToString())
 
     protected fun printExecute(name: String) =
         print(Style.ProgressStatus, true, "Executing $name task...")
@@ -144,6 +145,9 @@ open class BaseTask : DefaultTask() {
 
     protected fun printSuccess(message: String) =
         print(Style.Success, false, message)
+
+    protected fun printWarning(message: String) =
+        print(Style.Description, false, message)
 
     private fun print(style: Style, blankLine: Boolean, vararg messages: String) =
         with(out.style(style)) {

@@ -53,7 +53,11 @@ open class SyncVersions : BaseTask() {
 
                 printInfo("Found version: $versionNumber")
                 printProgress("Updating version to $versionNumber")
-                writeVersion(project, version, versionNumber)
+                val versionFile = getVersionsFile(project, version.file)
+                if (versionFile.exists())
+                    writeVersion(project, version, versionFile, versionNumber)
+                else
+                    printWarning("Unable to write version file as it does not exist: '$versionFile'")
                 printDone()
             }
         }
@@ -93,8 +97,7 @@ open class SyncVersions : BaseTask() {
         }
     }
 
-    private fun writeVersion(project: SyncProject, version: Version, versionNumber: String) {
-        val file = getVersionsFile(project, version.file)
+    private fun writeVersion(project: SyncProject, version: Version, file: File, versionNumber: String) {
         with(file) {
             with(version) {
                 Files.write(
