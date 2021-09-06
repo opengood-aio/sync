@@ -62,8 +62,8 @@ open class BaseTask : DefaultTask() {
                 projects.forEach { project ->
                     val buildInfo = try {
                         getBuildInfo(project.dir)
-                    } catch (e: Exception) {
-                        printException("Unable to get build info", e)
+                    } catch (ignored: Exception) {
+                        printWarning("Unable to get build info")
                         BuildInfo.EMPTY
                     }
 
