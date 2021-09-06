@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonValue
 enum class SettingsGradleType(@JsonValue private val value: String) {
     GROOVY("settings.gradle"),
     KOTLIN("settings.gradle.kts"),
+    NONE(""),
     ;
 
     override fun toString(): String = value

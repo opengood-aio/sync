@@ -8,4 +8,12 @@ data class BuildInfo(
     val language: LanguageType,
     val buildGradle: BuildGradleType,
     val settingsGradle: SettingsGradleType
-)
+) {
+    companion object {
+        val EMPTY = BuildInfo(
+            language = LanguageType.UNKNOWN,
+            buildGradle = BuildGradleType.NONE,
+            settingsGradle = SettingsGradleType.NONE
+        )
+    }
+}

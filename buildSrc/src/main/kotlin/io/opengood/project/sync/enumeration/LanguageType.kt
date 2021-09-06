@@ -9,6 +9,7 @@ enum class LanguageType(@JsonValue private val value: String) {
     GROOVY("Groovy"),
     JAVA("Java"),
     KOTLIN("Kotlin"),
+    UNKNOWN("Unknown"),
     ;
 
     override fun toString() = value

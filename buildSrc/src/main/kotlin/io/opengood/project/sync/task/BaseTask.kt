@@ -60,7 +60,12 @@ open class BaseTask : DefaultTask() {
 
             if (projects.isNotEmpty()) {
                 projects.forEach { project ->
-                    val buildInfo = getBuildInfo(project.dir)
+                    val buildInfo = try {
+                        getBuildInfo(project.dir)
+                    } catch (e: Exception) {
+                        BuildInfo.EMPTY
+                    }
+
                     with(project) {
                         printInfo("Project info...")
                         printInfo("Name: '$name'")
@@ -72,12 +77,14 @@ open class BaseTask : DefaultTask() {
                         printInfo("Version: '$version'")
                         printBlankLine()
 
-                        with(buildInfo) {
-                            printInfo("Build info...")
-                            printInfo("Language: '$language'")
-                            printInfo("Build Gradle: '$buildGradle'")
-                            printInfo("Settings Gradle: '$settingsGradle'")
-                            printBlankLine()
+                        if (buildInfo != BuildInfo.EMPTY) {
+                            with(buildInfo) {
+                                printInfo("Build info...")
+                                printInfo("Language: '$language'")
+                                printInfo("Build Gradle: '$buildGradle'")
+                                printInfo("Settings Gradle: '$settingsGradle'")
+                                printBlankLine()
+                            }
                         }
 
                         printInfo("CI info...")
