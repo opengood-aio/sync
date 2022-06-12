@@ -96,7 +96,7 @@ open class SyncVersions : BaseTask() {
                                             printProgress("Version number updated to $versionNumber")
                                         } else {
                                             printWarning(
-                                                "Version number is '$versionNumber' is excluded from inclusions list: ${
+                                                "Version number '$versionNumber' is excluded from inclusions list: ${
                                                     StringUtils.join(
                                                         inclusions,
                                                         ","
@@ -232,6 +232,6 @@ open class SyncVersions : BaseTask() {
 
     companion object {
         const val TASK_NAME = "syncVersions"
-        const val TASK_DISPLAY_NAME = "Versions"
+        const val TASK_DISPLAY_NAME = "Sync Versions"
     }
 }
