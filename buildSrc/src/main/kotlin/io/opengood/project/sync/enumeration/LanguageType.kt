@@ -14,3 +14,4 @@ enum class LanguageType(@JsonValue private val value: String) {
 
     override fun toString() = value
 }
+

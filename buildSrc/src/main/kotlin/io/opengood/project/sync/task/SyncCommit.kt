@@ -10,6 +10,12 @@ open class SyncCommit : BaseTask() {
     @Input
     lateinit var workspaceDir: String
 
+    @Input
+    lateinit var selectedProject: String
+
+    @Input
+    lateinit var commitMessage: String
+
     init {
         group = "sync"
         description = "Commits and pushes sync changes for each project"
@@ -21,34 +27,45 @@ open class SyncCommit : BaseTask() {
             name = TASK_NAME,
             displayName = TASK_DISPLAY_NAME,
             workspaceDir = workspaceDir,
+            selectedProject = selectedProject,
             projectDir = project.projectDir.absolutePath
         ) { _, _, project: SyncProject, _ ->
-            shellRun(project.dir) {
-                printInfo("Determining project changes for '${project.name}' in local Git repo '${project.dir}'")
-                val status = git.status()
-                printInfo("Git status:")
-                printInfo(status)
+            with(project) {
+                shellRun(dir) {
+                    with(project.git) {
+                        printInfo("Determining project changes for '${name}' in local Git repo '${dir}'...")
+                        val status = git.status()
 
-                if (status.isNotBlank()) {
-                    printProgress("Committing all changes to local Git repo...")
-                    git.commitAllChanges("Make project sync changes")
-                    printDone()
+                        if (status.isNotBlank()) {
+                            printInfo("Git status:")
+                            printInfo(status)
 
-                    printProgress("Pulling potential changes from remote Git repo...")
-                    git.pull()
-                    printDone()
+                            printProgress("Checking out '$branch' branch on local Git repo...")
+                            git.checkout(branch)
 
-                    printProgress("Pushing changes to remote Git repo...")
-                    git.pushToOrigin()
-                    printDone()
+                            printProgress("Committing all changes to '$branch' branch in local Git repo...")
+                            git.commitAllChanges(commitMessage)
+                            printDone()
+
+                            printProgress("Pulling potential changes from remote '$remote' Git repo...")
+                            git.pull(remote, branch)
+                            printDone()
+
+                            printProgress("Pushing changes to remote '$remote' Git repo...")
+                            git.push(remote, branch)
+                            printDone()
+                        } else {
+                            printInfo("No project changes found in local Git repo. Skipping.")
+                        }
+                    }
+                    ""
                 }
-                ""
             }
         }
     }
 
     companion object {
         const val TASK_NAME = "syncCommit"
-        const val TASK_DISPLAY_NAME = "Commit"
+        const val TASK_DISPLAY_NAME = "Sync Commit"
     }
 }

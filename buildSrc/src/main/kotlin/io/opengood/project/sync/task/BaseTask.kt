@@ -5,6 +5,8 @@ import io.opengood.project.sync.getBuildInfo
 import io.opengood.project.sync.getSyncMaster
 import io.opengood.project.sync.getSyncProjects
 import io.opengood.project.sync.model.BuildInfo
+import io.opengood.project.sync.model.ConfigInfo
+import io.opengood.project.sync.model.GitInfo
 import io.opengood.project.sync.model.SyncContext
 import io.opengood.project.sync.model.SyncMaster
 import io.opengood.project.sync.model.SyncProject
@@ -22,6 +24,7 @@ open class BaseTask : DefaultTask() {
         name: String,
         displayName: String,
         workspaceDir: String,
+        selectedProject: String,
         projectDir: String,
         task: (context: SyncContext, master: SyncMaster, project: SyncProject, buildInfo: BuildInfo) -> Unit
     ) {
@@ -51,7 +54,7 @@ open class BaseTask : DefaultTask() {
             }
 
             val projects = try {
-                getSyncProjects(context)
+                getSyncProjects(context, selectedProject)
             } catch (e: Exception) {
                 printException("Unable to parse sync files", e)
                 printComplete(name)
@@ -62,8 +65,8 @@ open class BaseTask : DefaultTask() {
                 projects.forEach { project ->
                     val buildInfo = try {
                         getBuildInfo(project.dir)
-                    } catch (ignored: Exception) {
-                        printWarning("Unable to get build info")
+                    } catch (e: Exception) {
+                        printException("Unable to get build info", e)
                         BuildInfo.EMPTY
                     }
 
@@ -81,22 +84,38 @@ open class BaseTask : DefaultTask() {
                         if (buildInfo != BuildInfo.EMPTY) {
                             with(buildInfo) {
                                 printInfo("Build info...")
+                                printInfo("Build Tool: '$buildTool'")
                                 printInfo("Language: '$language'")
                                 printInfo("Build Gradle: '$buildGradle'")
                                 printInfo("Settings Gradle: '$settingsGradle'")
+                                printInfo("Maven File: '$mavenFile'")
                                 printBlankLine()
                             }
                         }
 
-                        printInfo("CI info...")
-                        with(ci) {
-                            printInfo("Provider type: '$provider'")
-                            printInfo("Template: '$template'")
-                            printBlankLine()
+                        if (config != ConfigInfo.EMPTY) {
+                            with(config) {
+                                printInfo("Config info...")
+                                printInfo("Enabled: '$enabled'")
+                                printBlankLine()
+                            }
+                        }
+
+                        if (git != GitInfo.EMPTY) {
+                            with(git) {
+                                printInfo("Git info...")
+                                printInfo("Branch: '$branch'")
+                                printBlankLine()
+                            }
                         }
                     }
 
-                    task.invoke(context, master, project, buildInfo)
+                    if (master.config.enabled && project.config.enabled) {
+                        task.invoke(context, master, project, buildInfo)
+                    } else {
+                        printInfo("Project syncing disabled. Skipping...")
+                        printBlankLine()
+                    }
 
                     printSuccess("Completed sync of $displayName for project: ${project.name}")
                     printBlankLine()

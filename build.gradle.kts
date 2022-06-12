@@ -1,4 +1,4 @@
-import io.opengood.project.sync.task.SyncAll
+import io.opengood.project.sync.task.Sync
 import io.opengood.project.sync.task.SyncCiPipelines
 import io.opengood.project.sync.task.SyncCommit
 import io.opengood.project.sync.task.SyncVersions
@@ -10,10 +10,11 @@ plugins {
 }
 
 group = "io.opengood.project"
+description = "Sync Tool"
 
 val kotlinVersion = getKotlinPluginVersion()
-val javaVersion = JavaVersion.VERSION_11
-val jvmTargetVersion = "11"
+val javaVersion = JavaVersion.VERSION_17
+val jvmTargetVersion = "17"
 
 java.apply {
     sourceCompatibility = javaVersion
@@ -37,6 +38,13 @@ dependencies {
     implementation(kotlin("stdlib"))
 }
 
+fun getProperty(name: String) =
+    if (project.hasProperty(name)) {
+        project.property(name).toString()
+    } else {
+        ""
+    }
+
 with(tasks) {
     withType<Wrapper> {
         withType<KotlinCompile> {
@@ -48,8 +56,10 @@ with(tasks) {
     }
 
     val workspace = project.projectDir.parentFile.absolutePath
+    val selectedProj = getProperty("selectedProject")
+    val commitMsg = project.property("commitMessage").toString()
 
-    register<SyncAll>(SyncAll.TASK_NAME) {
+    register<Sync>(Sync.TASK_NAME) {
         dependsOn(
             SyncCiPipelines.TASK_NAME,
             SyncVersions.TASK_NAME,
@@ -59,15 +69,18 @@ with(tasks) {
 
     register<SyncCiPipelines>(SyncCiPipelines.TASK_NAME) {
         workspaceDir = workspace
+        selectedProject = selectedProj
     }
 
     register<SyncVersions>(SyncVersions.TASK_NAME) {
         workspaceDir = workspace
-        mustRunAfter(SyncCiPipelines.TASK_NAME)
+        selectedProject = selectedProj
     }
 
     register<SyncCommit>(SyncCommit.TASK_NAME) {
         workspaceDir = workspace
+        selectedProject = selectedProj
+        commitMessage = commitMsg
         mustRunAfter(SyncVersions.TASK_NAME)
     }
 }

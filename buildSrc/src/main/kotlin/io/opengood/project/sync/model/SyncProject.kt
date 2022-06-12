@@ -4,7 +4,10 @@ import java.io.File
 
 data class SyncProject(
     val version: String,
+    val config: ConfigInfo = ConfigInfo(),
+    val git: GitInfo = GitInfo(),
     val ci: CiConfig,
+    val versioning: List<VersionProject> = emptyList()
 ) {
     lateinit var name: String
     lateinit var dir: File
@@ -13,7 +16,10 @@ data class SyncProject(
     companion object {
         val EMPTY = SyncProject(
             version = "",
-            ci = CiConfig.EMPTY
+            config = ConfigInfo.EMPTY,
+            git = GitInfo.EMPTY,
+            ci = CiConfig.EMPTY,
+            versioning = emptyList()
         )
     }
 }

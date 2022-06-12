@@ -2,11 +2,11 @@ package io.opengood.project.sync.task
 
 import org.gradle.api.tasks.TaskAction
 
-open class SyncAll : BaseTask() {
+open class Sync : BaseTask() {
 
     init {
         group = "sync"
-        description = "Syncs all items for each project"
+        description = "Syncs all artifacts for each project"
     }
 
     @TaskAction
@@ -14,6 +14,6 @@ open class SyncAll : BaseTask() {
     }
 
     companion object {
-        const val TASK_NAME = "syncAll"
+        const val TASK_NAME = "sync"
     }
 }

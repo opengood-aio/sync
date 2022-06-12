@@ -13,3 +13,4 @@ enum class BuildGradleType(@JsonValue private val value: String) {
 
     override fun toString(): String = value
 }
+

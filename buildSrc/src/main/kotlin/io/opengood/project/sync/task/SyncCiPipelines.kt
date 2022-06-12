@@ -15,6 +15,9 @@ open class SyncCiPipelines : BaseTask() {
     @Input
     lateinit var workspaceDir: String
 
+    @Input
+    lateinit var selectedProject: String
+
     init {
         group = "sync"
         description = "Syncs CI pipelines from template source for each project"
@@ -26,6 +29,7 @@ open class SyncCiPipelines : BaseTask() {
             name = TASK_NAME,
             displayName = TASK_DISPLAY_NAME,
             workspaceDir = workspaceDir,
+            selectedProject = selectedProject,
             projectDir = project.projectDir.absolutePath
         ) { context: SyncContext, master: SyncMaster, project: SyncProject, _ ->
             if (project.ci != CiConfig.EMPTY) {
@@ -54,6 +58,6 @@ open class SyncCiPipelines : BaseTask() {
 
     companion object {
         const val TASK_NAME = "syncCiPipelines"
-        const val TASK_DISPLAY_NAME = "CI Pipelines"
+        const val TASK_DISPLAY_NAME = "Sync CI Pipelines"
     }
 }
