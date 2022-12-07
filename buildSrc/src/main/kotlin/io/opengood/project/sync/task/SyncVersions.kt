@@ -70,13 +70,16 @@ open class SyncVersions : BaseTask() {
                                             VersionType.DOCKER_IMAGE -> {
                                                 getVersion(version, Patterns.DOCKER_IMAGE)
                                             }
+
                                             VersionType.GRADLE_WRAPPER -> {
                                                 getVersion(version, Patterns.GRADLE_WRAPPER)
                                             }
+
                                             VersionType.GRADLE_NEXUS_DEPENDENCY,
                                             VersionType.MAVEN_NEXUS_DEPENDENCY -> {
                                                 getVersion(version, Patterns.NEXUS_DEPENDENCY)
                                             }
+
                                             else -> {
                                                 getVersion(version, Patterns.MAVEN_DEPENDENCY)
                                             }
@@ -133,9 +136,11 @@ open class SyncVersions : BaseTask() {
                     VersionType.DOCKER_IMAGE -> {
                         JsonPath.parse(result.get()).read<List<String>>(pattern.pattern()).last()
                     }
+
                     VersionType.GRADLE_WRAPPER -> {
                         JsonPath.parse(result.get()).read(pattern.pattern())
                     }
+
                     VersionType.GRADLE_NEXUS_DEPENDENCY,
                     VersionType.MAVEN_NEXUS_DEPENDENCY -> {
                         try {
@@ -149,6 +154,7 @@ open class SyncVersions : BaseTask() {
                             ""
                         }
                     }
+
                     else -> {
                         try {
                             val document = DocumentHelper.parseText(result.get())
@@ -164,6 +170,7 @@ open class SyncVersions : BaseTask() {
                     }
                 }
             }
+
             is Result.Failure -> {
                 printWarning("Unable to retrieve version from '${version.uri}': ${result.getException().message}")
                 ""
@@ -178,6 +185,7 @@ open class SyncVersions : BaseTask() {
                 VersionFileType.SETTINGS_GRADLE -> {
                     File(dir, settingsGradleType(dir).toString())
                 }
+
                 else -> {
                     File(dir, versionFile.toString())
                 }
@@ -204,7 +212,9 @@ open class SyncVersions : BaseTask() {
                     .map { line ->
                         val spaces = countSpaces(line)
                         val currentLine = when {
-                            StringUtils.isBlank(subKey) && line.contains(key) ->
+                            StringUtils.isBlank(subKey) &&
+                                !Patterns.SNAPSHOT_VERSION.contains(key) &&
+                                line.contains(key) ->
                                 padSpaces(
                                     String.format(
                                         pattern,
@@ -212,13 +222,17 @@ open class SyncVersions : BaseTask() {
                                         versionNumber
                                     ), spaces
                                 )
-                            StringUtils.isNotBlank(subKey) && prevLine.contains(key) && line.contains(subKey) ->
+
+                            StringUtils.isNotBlank(subKey) &&
+                                !Patterns.SNAPSHOT_VERSION.contains(subKey) &&
+                                prevLine.contains(key) && line.contains(subKey) ->
                                 padSpaces(
                                     String.format(
                                         pattern,
                                         versionNumber
                                     ), spaces
                                 )
+
                             else -> line
                         }
                         prevLine = currentLine
