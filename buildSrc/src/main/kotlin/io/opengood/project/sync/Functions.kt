@@ -55,18 +55,18 @@ internal fun getBuildFiles(dir: File): List<FileType> {
     val buildTool = getBuildTool(dir)
     return when (buildTool) {
         BuildToolType.GRADLE -> {
-            if (hasFile(dir, BUILD_GRADLE_GROOVY)) files.add(BUILD_GRADLE_GROOVY)
-            if (hasFile(dir, BUILD_GRADLE_KOTLIN)) files.add(BUILD_GRADLE_KOTLIN)
-            if (hasFile(dir, GRADLE_WRAPPER_PROPERTIES)) files.add(GRADLE_WRAPPER_PROPERTIES)
-            if (hasFile(dir, SETTINGS_GRADLE_GROOVY)) files.add(SETTINGS_GRADLE_GROOVY)
-            if (hasFile(dir, SETTINGS_GRADLE_KOTLIN)) files.add(SETTINGS_GRADLE_KOTLIN)
-            if (hasFile(dir, VERSIONS_PROPERTIES)) files.add(VERSIONS_PROPERTIES)
+            if (hasPath(dir, BUILD_GRADLE_GROOVY)) files.add(BUILD_GRADLE_GROOVY)
+            if (hasPath(dir, BUILD_GRADLE_KOTLIN)) files.add(BUILD_GRADLE_KOTLIN)
+            if (hasPath(dir, GRADLE_WRAPPER_PROPERTIES)) files.add(GRADLE_WRAPPER_PROPERTIES)
+            if (hasPath(dir, SETTINGS_GRADLE_GROOVY)) files.add(SETTINGS_GRADLE_GROOVY)
+            if (hasPath(dir, SETTINGS_GRADLE_KOTLIN)) files.add(SETTINGS_GRADLE_KOTLIN)
+            if (hasPath(dir, VERSIONS_PROPERTIES)) files.add(VERSIONS_PROPERTIES)
             files
         }
 
         BuildToolType.MAVEN -> {
-            if (hasFile(dir, MAVEN_POM)) files.add(MAVEN_POM)
-            if (hasFile(dir, MAVEN_WRAPPER_PROPERTIES)) files.add(MAVEN_WRAPPER_PROPERTIES)
+            if (hasPath(dir, MAVEN_POM)) files.add(MAVEN_POM)
+            if (hasPath(dir, MAVEN_WRAPPER_PROPERTIES)) files.add(MAVEN_WRAPPER_PROPERTIES)
             files
         }
 
@@ -102,8 +102,11 @@ internal fun getLanguageType(dir: File): LanguageType =
 internal fun getPathAsFile(path: String, vararg paths: String): File =
     Path.of(path, *paths).toFile()
 
+internal fun <E : Enum<E>> getPathAsFile(dir: File, file: Enum<E>): File =
+    Path.of(dir.absolutePath, file.toString()).toFile()
+
 internal fun getSyncMaster(dir: File): SyncMaster {
-    val file = getPathAsFile(dir.absolutePath, SyncFileType.MASTER.toString())
+    val file = getPathAsFile(dir, SyncFileType.MASTER)
     if (!file.exists()) {
         throw FileNotFoundException("Sync master file cannot be found: $file")
     }
@@ -131,51 +134,48 @@ internal fun getSyncProjects(dir: File): List<SyncProject> =
             }
         }
 
-internal fun getVersionFiles(dir: File): List<FileType> {
-    val files = mutableListOf<FileType>()
-    if (hasFile(dir, BUILD_GRADLE_GROOVY)) files.add(BUILD_GRADLE_GROOVY)
-    if (hasFile(dir, BUILD_GRADLE_KOTLIN)) files.add(BUILD_GRADLE_KOTLIN)
-    if (hasFile(dir, DOCKERFILE)) files.add(DOCKERFILE)
-    if (hasFile(dir, GRADLE_WRAPPER_PROPERTIES)) files.add(GRADLE_WRAPPER_PROPERTIES)
-    if (hasFile(dir, MAVEN_POM)) files.add(MAVEN_POM)
-    if (hasFile(dir, MAVEN_WRAPPER_PROPERTIES)) files.add(MAVEN_WRAPPER_PROPERTIES)
-    if (hasFile(dir, SETTINGS_GRADLE_GROOVY)) files.add(SETTINGS_GRADLE_GROOVY)
-    if (hasFile(dir, SETTINGS_GRADLE_KOTLIN)) files.add(SETTINGS_GRADLE_KOTLIN)
-    if (hasFile(dir, VERSIONS_PROPERTIES)) files.add(VERSIONS_PROPERTIES)
+internal fun getVersionFiles(dir: File): List<File> {
+    val files = mutableListOf<File>()
+    if (hasPath(dir, BUILD_GRADLE_GROOVY)) files.add(getPathAsFile(dir, BUILD_GRADLE_GROOVY))
+    if (hasPath(dir, BUILD_GRADLE_KOTLIN)) files.add(getPathAsFile(dir, BUILD_GRADLE_KOTLIN))
+    if (hasPath(dir, DOCKERFILE)) files.add(getPathAsFile(dir, DOCKERFILE))
+    if (hasPath(dir, GRADLE_WRAPPER_PROPERTIES)) files.add(getPathAsFile(dir, GRADLE_WRAPPER_PROPERTIES))
+    if (hasPath(dir, MAVEN_POM)) files.add(getPathAsFile(dir, MAVEN_POM))
+    if (hasPath(dir, MAVEN_WRAPPER_PROPERTIES)) files.add(getPathAsFile(dir, MAVEN_WRAPPER_PROPERTIES))
+    if (hasPath(dir, SETTINGS_GRADLE_GROOVY)) files.add(getPathAsFile(dir, SETTINGS_GRADLE_GROOVY))
+    if (hasPath(dir, SETTINGS_GRADLE_KOTLIN)) files.add(getPathAsFile(dir, SETTINGS_GRADLE_KOTLIN))
+    if (hasPath(dir, VERSIONS_PROPERTIES)) files.add(getPathAsFile(dir, VERSIONS_PROPERTIES))
     return files
 }
 
-internal fun hasFile(dir: File, file: FileType): Boolean =
+internal fun <E : Enum<E>> hasPath(dir: File, file: Enum<E>): Boolean =
     getPathAsFile(dir.absolutePath, file.toString()).exists()
 
-internal fun hasSrcDir(dir: File, type: SrcDirType): Boolean =
-    getPathAsFile(dir.absolutePath, type.toString()).exists()
-
 internal fun isGradle(dir: File): Boolean =
-    hasFile(dir, BUILD_GRADLE_GROOVY) ||
-        hasFile(dir, BUILD_GRADLE_KOTLIN) ||
-        hasFile(dir, SETTINGS_GRADLE_GROOVY) ||
-        hasFile(dir, SETTINGS_GRADLE_KOTLIN)
+    hasPath(dir, BUILD_GRADLE_GROOVY) ||
+        hasPath(dir, BUILD_GRADLE_KOTLIN) ||
+        hasPath(dir, SETTINGS_GRADLE_GROOVY) ||
+        hasPath(dir, SETTINGS_GRADLE_KOTLIN)
 
 internal fun isGradleGroovyDsl(dir: File): Boolean =
-    hasFile(dir, BUILD_GRADLE_GROOVY) ||
-        hasFile(dir, SETTINGS_GRADLE_GROOVY)
+    hasPath(dir, BUILD_GRADLE_GROOVY) ||
+        hasPath(dir, SETTINGS_GRADLE_GROOVY)
 
 internal fun isGradleKotlinDsl(dir: File): Boolean =
-    hasFile(dir, BUILD_GRADLE_KOTLIN) ||
-        hasFile(dir, SETTINGS_GRADLE_KOTLIN)
+    hasPath(dir, BUILD_GRADLE_KOTLIN) ||
+        hasPath(dir, SETTINGS_GRADLE_KOTLIN)
 
 internal fun isGroovy(dir: File): Boolean =
-    hasSrcDir(dir, SrcDirType.GROOVY)
+    hasPath(dir, SrcDirType.GROOVY)
 
 internal fun isJava(dir: File): Boolean =
-    hasSrcDir(dir, SrcDirType.JAVA)
+    hasPath(dir, SrcDirType.JAVA)
 
 internal fun isKotlin(dir: File): Boolean =
-    hasSrcDir(dir, SrcDirType.KOTLIN)
+    hasPath(dir, SrcDirType.KOTLIN)
 
 internal fun isMaven(dir: File): Boolean =
-    hasFile(dir, MAVEN_POM)
+    hasPath(dir, MAVEN_POM)
 
 internal fun padSpaces(line: String, spaces: Int) =
     if (spaces == 0) line else line.padStart(line.length + spaces)

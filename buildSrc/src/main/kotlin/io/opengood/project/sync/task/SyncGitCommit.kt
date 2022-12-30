@@ -2,6 +2,7 @@ package io.opengood.project.sync.task
 
 import com.lordcodes.turtle.shellRun
 import io.opengood.project.sync.model.SyncProject
+import org.apache.commons.lang3.StringUtils
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
 
@@ -57,7 +58,7 @@ open class SyncGitCommit : BaseTask() {
                             printInfo("No project changes found in local Git repo. Skipping.")
                         }
                     }
-                    ""
+                    StringUtils.EMPTY
                 }
             }
         }

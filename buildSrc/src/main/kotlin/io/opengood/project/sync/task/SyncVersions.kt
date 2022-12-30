@@ -2,21 +2,21 @@ package io.opengood.project.sync.task
 
 import com.github.kittinunf.fuel.httpGet
 import com.github.kittinunf.result.Result
-import com.jayway.jsonpath.JsonPath
-import io.opengood.project.sync.constant.Patterns
-import io.opengood.project.sync.enumeration.FileType
-import io.opengood.project.sync.enumeration.VersionProviderType
-import io.opengood.project.sync.model.BuildInfo
+import io.opengood.project.sync.countSpaces
+import io.opengood.project.sync.enumeration.BuildToolType.GRADLE
+import io.opengood.project.sync.enumeration.FileType.VERSIONS_PROPERTIES
+import io.opengood.project.sync.getVersionFiles
 import io.opengood.project.sync.model.SyncMaster
 import io.opengood.project.sync.model.SyncProject
-import io.opengood.project.sync.getVersionFiles
-import io.opengood.project.sync.countSpaces
-import io.opengood.project.sync.padSpaces
+import io.opengood.project.sync.model.VersionConfigPatterns
+import io.opengood.project.sync.model.VersionPattern
+import io.opengood.project.sync.model.VersionPatternResult
+import io.opengood.project.sync.model.VersionProvider
+import io.opengood.project.sync.model.VersionUri
 import org.apache.commons.lang3.StringUtils
 import org.dom4j.DocumentHelper
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
-import java.io.File
 import java.nio.file.Files
 import java.util.regex.Pattern
 
@@ -40,216 +40,174 @@ open class SyncVersions : BaseTask() {
             displayName = TASK_DISPLAY_NAME,
             workspacePath = workspacePath,
             projectPath = projectPath
-        ) { _, master: SyncMaster, project: SyncProject, buildInfo: BuildInfo ->
+        ) { _, master: SyncMaster, project: SyncProject, _ ->
             val versionFiles = getVersionFiles(project.dir)
             versionFiles.forEach { versionFile ->
+                var priorLine = StringUtils.EMPTY
+                var prevLine = StringUtils.EMPTY
+                Files.write(
+                    versionFile.toPath(),
+                    Files.lines(versionFile.toPath())
+                        .map { line ->
+                            val spaces = countSpaces(line)
+                            var currentLine = line
 
-            }
-
-
-
-
-
-
-            val versions = master.versioning
-            versions.forEach { version ->
-                printInfo("Determining if project name '${project.name}' is contained in version key '${version.key}'...")
-                if (project.name != version.id) {
-                    printProgress("Project name '${project.name}' is not contained in version key")
-
-                    printInfo("Determining if version type '${version.type}' applies...")
-                    if (version.tools.contains(buildInfo.tool)) {
-                        printProgress("Version type '${version.type}' applicable")
-
-                        version.files.forEach { file ->
-                            printInfo("Determining if version file '${file}' exists...")
-                            val versionFile = getVersionFile(project, file)
-                            if (versionFile.exists()) {
-                                printInfo("Version file '${file}' exists")
-
-                                printInfo("Determining if version key '${version.key}' exists in file...")
-                                if (versionFile.readText(Charsets.UTF_8).contains(version.key)) {
-                                    printProgress("Version key '${version.key}' exists in file")
-
-                                    printInfo("Determining version number for '${version.name}'")
-                                    val versionNumber = try {
-                                        when (version.type) {
-                                            VersionProviderType.DOCKER_IMAGE -> {
-                                                getVersion(version, Patterns.DOCKER_IMAGE)
-                                            }
-
-                                            VersionProviderType.GRADLE_WRAPPER -> {
-                                                getVersion(version, Patterns.GRADLE_WRAPPER)
-                                            }
-
-                                            VersionProviderType.GRADLE_NEXUS_DEPENDENCY,
-                                            VersionProviderType.MAVEN_NEXUS_DEPENDENCY -> {
-                                                getVersion(version, Patterns.NEXUS_DEPENDENCY)
-                                            }
-
-                                            else -> {
-                                                getVersion(version, Patterns.MAVEN_DEPENDENCY)
+                            with(master.versions) {
+                                with(config) {
+                                    providers.forEach { provider ->
+                                        with(provider) {
+                                            if (files.contains(versionFile.name)) {
+                                                currentLine = changeLine(
+                                                    currentLine,
+                                                    spaces,
+                                                    provider,
+                                                    patterns,
+                                                    prevLine,
+                                                    priorLine
+                                                )
                                             }
                                         }
-                                    } catch (e: Exception) {
-                                        printException("Unable to get version number", e)
-                                        "None"
                                     }
-
-                                    if (versionNumber != "None") {
-                                        printInfo("Found version number: $versionNumber")
-
-                                        val inclusions = getVersionInclusions(version, project)
-                                        if (isVersionIncluded(versionNumber, inclusions)) {
-                                            printProgress("Updating version number to $versionNumber")
-                                            writeVersion(version, versionFile, versionNumber)
-                                            printProgress("Version number updated to $versionNumber")
-                                        } else {
-                                            printWarning(
-                                                "Version number '$versionNumber' is excluded from inclusions list: ${
-                                                    StringUtils.join(
-                                                        inclusions,
-                                                        ","
-                                                    )
-                                                }"
-                                            )
-                                        }
-                                    }
-                                } else {
-                                    printWarning("Version key '${version.key}' does not exist in file. Unable to write version number to file.")
                                 }
-                            } else {
-                                printWarning("Version file '$versionFile' does not exist. Unable to write version number to file.")
+                            }
+
+                            priorLine = prevLine
+                            prevLine = currentLine
+                            currentLine
+                        }
+                        .toList()
+                )
+            }
+        }
+    }
+
+    private fun changeLine(
+        line: String,
+        spaces: Int,
+        provider: VersionProvider,
+        patterns: VersionConfigPatterns,
+        vararg lines: String
+    ): String {
+        with(provider) {
+            return when {
+                tools.contains(GRADLE) -> {
+                    when {
+                        files.contains(VERSIONS_PROPERTIES.toString()) -> {
+                            val group = findPatternMatch("group", read, line, 1)
+                            val name = findPatternMatch("name", read, line, 1)
+                            val currentVersion = findPatternMatch("version", read, line, 1)
+
+                            if (group != VersionPatternResult.EMPTY &&
+                                name != VersionPatternResult.EMPTY &&
+                                currentVersion != VersionPatternResult.EMPTY
+                            ) {
+                                val newVersion = getVersionNumber(provider, patterns, group, name)
+                            }
+                            line
+                        }
+
+                        else -> line
+                    }
+                }
+
+                else -> line
+            }
+        }
+    }
+
+    private fun downloadVersionNumber(
+        uri: String,
+        pattern: String,
+        provider: VersionProvider,
+        patterns: VersionConfigPatterns
+    ): String {
+        with(provider) {
+            with(patterns) {
+                val (_, _, result) = uri.httpGet().responseString()
+                return when (result) {
+                    is Result.Success -> {
+                        when (type) {
+                            else -> {
+                                try {
+                                    val document = DocumentHelper.parseText(result.get())
+                                    document.selectNodes(pattern)
+                                        .last { node ->
+                                            versionNumber.toRegex().matches(node.text) &&
+                                                !versionNumberIgnore.any { node.text.contains(it) }
+                                        }.text
+                                } catch (e: Exception) {
+                                    printWarning("Unable to parse version number from response for version provider '$type'", e)
+                                    StringUtils.EMPTY
+                                }
                             }
                         }
-                        printDone()
-                    } else {
-                        printInfo("Version type '${version.type}' not applicable. Skipping.")
-                        printDone()
                     }
-                } else {
-                    printInfo("Project name '${project.name}' is contained in version key. Skipping.")
-                    printDone()
+
+                    is Result.Failure -> {
+                        printWarning("Unable to retrieve version number from request URI '$uri' for version provider '$type'", result.getException())
+                        StringUtils.EMPTY
+                    }
+                }
+            }
+        }
+    }
+
+    private fun findPatternMatch(
+        key: String,
+        patterns: List<VersionPattern>,
+        value: String,
+        index: Int
+    ): VersionPatternResult {
+        val pattern = patterns.first { it.key == key }
+        val matcher = Pattern.compile(pattern.pattern).matcher(value)
+        if (matcher.find()) {
+            return VersionPatternResult(key = key, value = matcher.group(index))
+        }
+        return VersionPatternResult.EMPTY
+    }
+
+    private fun getUri(
+        uri: VersionUri,
+        provider: VersionProvider,
+        vararg params: VersionPatternResult
+    ): String {
+        return with(provider) {
+            with(uri) {
+                when {
+                    tools.contains(GRADLE) -> {
+                        val group = params.getValue("group").asPath()
+                        val name = params.getValue("name")
+                        this.uri.replace("{group}", group).replace("{name}", name)
+                    }
+
+                    else -> StringUtils.EMPTY
                 }
             }
         }
     }
 
-    private fun getVersion(version: VersionMaster, pattern: Pattern): String {
-        val (_, _, result) = version.uri.httpGet().responseString()
-        return when (result) {
-            is Result.Success -> {
-                when (version.type) {
-                    VersionProviderType.DOCKER_IMAGE -> {
-                        JsonPath.parse(result.get()).read<List<String>>(pattern.pattern()).last()
-                    }
-
-                    VersionProviderType.GRADLE_WRAPPER -> {
-                        JsonPath.parse(result.get()).read(pattern.pattern())
-                    }
-
-                    VersionProviderType.GRADLE_NEXUS_DEPENDENCY,
-                    VersionProviderType.MAVEN_NEXUS_DEPENDENCY -> {
-                        try {
-                            JsonPath.parse(result.get()).read<List<Map<String, String>>>(pattern.pattern())
-                                .first {
-                                    Patterns.SEMANTIC_VERSION.toRegex().matches(it["version"].toString()) &&
-                                        !Patterns.VERSION_NUMBER_IGNORE.contains(it["version"].toString())
-                                }["version"].toString()
-                        } catch (e: Exception) {
-                            printWarning("Unable to retrieve version: ${e.message}")
-                            ""
-                        }
-                    }
-
-                    else -> {
-                        try {
-                            val document = DocumentHelper.parseText(result.get())
-                            document.selectNodes(pattern.pattern())
-                                .last { node ->
-                                    Patterns.VERSION_NUMBER.toRegex().matches(node.text) &&
-                                        !Patterns.VERSION_NUMBER_IGNORE.any { node.text.contains(it) }
-                                }.text
-                        } catch (e: Exception) {
-                            printWarning("Unable to retrieve version: ${e.message}")
-                            ""
-                        }
-                    }
-                }
-            }
-
-            is Result.Failure -> {
-                printWarning("Unable to retrieve version from '${version.uri}': ${result.getException().message}")
-                ""
-            }
-        }
-    }
-
-    private fun getVersionFile(project: SyncProject, versionFile: FileType): File {
-        with(project) {
-            return when (versionFile) {
-                FileType.BUILD_GRADLE_GROOVY,
-                FileType.SETTINGS_GRADLE_GROOVY -> {
-                    File(dir, settingsGradleType(dir).toString())
-                }
-
-                else -> {
-                    File(dir, versionFile.toString())
+    private fun getVersionNumber(
+        provider: VersionProvider,
+        patterns: VersionConfigPatterns,
+        vararg params: VersionPatternResult
+    ): String {
+        with(provider) {
+            uris.forEach { uri ->
+                val downloadUri = getUri(uri, provider, *params)
+                val versionNumber = downloadVersionNumber(downloadUri, uri.pattern, provider, patterns)
+                if (versionNumber.isNotBlank()) {
+                    return versionNumber
                 }
             }
         }
+        return StringUtils.EMPTY
     }
 
-    private fun getVersionInclusions(version: VersionMaster, project: SyncProject): List<String> =
-        version.inclusions + project.versioning.filter { it.id == version.id }.flatMap { it.inclusions }
+    private fun String.asPath(): String =
+        this.replace(".", "/")
 
-    private fun isVersionIncluded(versionNumber: String, inclusions: List<String>): Boolean {
-        return if (inclusions.isEmpty()) {
-            true
-        } else {
-            inclusions.any { versionNumber.startsWith(it.removeSuffix("*")) }
-        }
-    }
-
-    private fun writeVersion(version: VersionMaster, file: File, versionNumber: String) {
-        with(file) {
-            with(version) {
-                var prevLine = StringUtils.EMPTY
-                val lines = Files.lines(toPath())
-                    .map { line ->
-                        val spaces = countSpaces(line)
-                        val currentLine = when {
-                            StringUtils.isBlank(subKey) &&
-                                !Patterns.SNAPSHOT_VERSION.contains(key) &&
-                                line.contains(key) ->
-                                padSpaces(
-                                    String.format(
-                                        pattern,
-                                        key,
-                                        versionNumber
-                                    ), spaces
-                                )
-
-                            StringUtils.isNotBlank(subKey) &&
-                                !Patterns.SNAPSHOT_VERSION.contains(subKey) &&
-                                prevLine.contains(key) && line.contains(subKey) ->
-                                padSpaces(
-                                    String.format(
-                                        pattern,
-                                        versionNumber
-                                    ), spaces
-                                )
-
-                            else -> line
-                        }
-                        prevLine = currentLine
-                        currentLine
-                    }
-                    .toList()
-                Files.write(toPath(), lines)
-            }
-        }
-    }
+    private fun Array<out VersionPatternResult>.getValue(key: String): String =
+        this.first { it.key == key }.value
 
     companion object {
         const val TASK_NAME = "syncVersions"

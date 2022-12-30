@@ -11,6 +11,8 @@ import io.opengood.project.sync.model.GitInfo
 import io.opengood.project.sync.model.SyncContext
 import io.opengood.project.sync.model.SyncMaster
 import io.opengood.project.sync.model.SyncProject
+import io.opengood.project.sync.model.VersionMasterConfig
+import io.opengood.project.sync.model.VersionProvider
 import org.gradle.api.DefaultTask
 import org.gradle.internal.logging.text.StyledTextOutput.Style
 import org.gradle.internal.logging.text.StyledTextOutputFactory
@@ -51,6 +53,27 @@ open class BaseTask : DefaultTask() {
                 printInfo("File: '$file'")
                 printInfo("Version: '$version'")
                 printBlankLine()
+
+                if (versions != VersionMasterConfig.EMPTY) {
+                    printInfo("Sorting versions provider properties...")
+                    with(versions) {
+                        with(providers) {
+                            if (isNotEmpty()) {
+                                forEach { provider ->
+                                    if (provider != VersionProvider.EMPTY) {
+                                        with(provider) {
+                                            printInfo("Sorting provider '$name' properties")
+                                            if (read.isNotEmpty()) read.sortedBy { it.index }
+                                            if (uris.isNotEmpty()) uris.sortedBy { it.index }
+                                            if (write.isNotEmpty()) write.sortedBy { it.index }
+                                        }
+                                    }
+                                }
+                                printBlankLine()
+                            }
+                        }
+                    }
+                }
             }
 
             val projects = try {
@@ -176,6 +199,9 @@ open class BaseTask : DefaultTask() {
 
     protected fun printWarning(message: String) =
         print(Style.Description, false, message)
+
+    protected fun printWarning(message: String, e: Exception) =
+        print(Style.Description, false, "$message: ${e.message}")
 
     private fun print(style: Style, blankLine: Boolean, vararg messages: String) =
         with(out.style(style)) {
