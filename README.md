@@ -59,8 +59,8 @@ ci:
 | Name      | Description                            | Required | Default |
 |-----------|----------------------------------------|----------|---------|
 | `config`  | Configuration properties               | No       | `N/A`   |
-| `ci`      | CI task(s) properties                  | No       | `N/A`   |
 | `git`     | Git task(s) properties                 | No       | `N/A`   |
+| `ci`      | CI task(s) properties                  | No       | `N/A`   |
 
 #### Configuration Properties
 
