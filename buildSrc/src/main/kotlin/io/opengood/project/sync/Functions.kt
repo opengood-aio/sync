@@ -3,13 +3,20 @@ package io.opengood.project.sync
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.fasterxml.jackson.module.kotlin.kotlinModule
-import io.opengood.project.sync.enumeration.BuildGradleType
 import io.opengood.project.sync.enumeration.BuildToolType
 import io.opengood.project.sync.enumeration.CiProviderType
-import io.opengood.project.sync.enumeration.LanguageSrcDirType
+import io.opengood.project.sync.enumeration.FileType
+import io.opengood.project.sync.enumeration.FileType.BUILD_GRADLE_GROOVY
+import io.opengood.project.sync.enumeration.FileType.BUILD_GRADLE_KOTLIN
+import io.opengood.project.sync.enumeration.FileType.DOCKERFILE
+import io.opengood.project.sync.enumeration.FileType.GRADLE_WRAPPER_PROPERTIES
+import io.opengood.project.sync.enumeration.FileType.MAVEN_POM
+import io.opengood.project.sync.enumeration.FileType.MAVEN_WRAPPER_PROPERTIES
+import io.opengood.project.sync.enumeration.FileType.SETTINGS_GRADLE_GROOVY
+import io.opengood.project.sync.enumeration.FileType.SETTINGS_GRADLE_KOTLIN
+import io.opengood.project.sync.enumeration.FileType.VERSIONS_PROPERTIES
 import io.opengood.project.sync.enumeration.LanguageType
-import io.opengood.project.sync.enumeration.MavenFileType
-import io.opengood.project.sync.enumeration.SettingsGradleType
+import io.opengood.project.sync.enumeration.SrcDirType
 import io.opengood.project.sync.enumeration.SyncFileType
 import io.opengood.project.sync.model.BuildInfo
 import io.opengood.project.sync.model.CiProvider
@@ -21,47 +28,82 @@ import java.io.FileNotFoundException
 import java.nio.file.Path
 import java.util.regex.Pattern
 
-internal fun buildGradleType(dir: File): BuildGradleType =
-    when {
-        isGradleGroovyDsl(dir) -> BuildGradleType.GROOVY
-        isGradleKotlinDsl(dir) -> BuildGradleType.KOTLIN
-        else -> BuildGradleType.NONE
+internal fun countSpaces(line: String): Int {
+    val matcher = Pattern.compile("^\\s+").matcher(line)
+    return if (matcher.find()) matcher.group(0).length else 0
+}
+
+internal fun createContext(workspacePath: String, syncProjectPath: String): SyncContext {
+    val workspaceDir = getPathAsFile(workspacePath)
+    if (!workspaceDir.exists()) {
+        throw FileNotFoundException("Workspace directory cannot be found: $workspaceDir")
     }
 
-internal fun buildTool(dir: File): BuildToolType =
+    val syncProjectDir = getPathAsFile(syncProjectPath)
+    if (!syncProjectDir.exists()) {
+        throw FileNotFoundException("Sync project directory cannot be found: $syncProjectDir")
+    }
+
+    return SyncContext(
+        workspaceDir = workspaceDir,
+        syncProjectDir = syncProjectDir
+    )
+}
+
+internal fun getBuildFiles(dir: File): List<FileType> {
+    val files = mutableListOf<FileType>()
+    val buildTool = getBuildTool(dir)
+    return when (buildTool) {
+        BuildToolType.GRADLE -> {
+            if (hasFile(dir, BUILD_GRADLE_GROOVY)) files.add(BUILD_GRADLE_GROOVY)
+            if (hasFile(dir, BUILD_GRADLE_KOTLIN)) files.add(BUILD_GRADLE_KOTLIN)
+            if (hasFile(dir, GRADLE_WRAPPER_PROPERTIES)) files.add(GRADLE_WRAPPER_PROPERTIES)
+            if (hasFile(dir, SETTINGS_GRADLE_GROOVY)) files.add(SETTINGS_GRADLE_GROOVY)
+            if (hasFile(dir, SETTINGS_GRADLE_KOTLIN)) files.add(SETTINGS_GRADLE_KOTLIN)
+            if (hasFile(dir, VERSIONS_PROPERTIES)) files.add(VERSIONS_PROPERTIES)
+            files
+        }
+
+        BuildToolType.MAVEN -> {
+            if (hasFile(dir, MAVEN_POM)) files.add(MAVEN_POM)
+            if (hasFile(dir, MAVEN_WRAPPER_PROPERTIES)) files.add(MAVEN_WRAPPER_PROPERTIES)
+            files
+        }
+
+        else -> emptyList()
+    }
+}
+
+internal fun getBuildInfo(dir: File): BuildInfo =
+    BuildInfo(
+        language = getLanguageType(dir),
+        tool = getBuildTool(dir),
+        files = getBuildFiles(dir)
+    )
+
+internal fun getBuildTool(dir: File): BuildToolType =
     when {
         isGradle(dir) -> BuildToolType.GRADLE
         isMaven(dir) -> BuildToolType.MAVEN
         else -> BuildToolType.UNKNOWN
     }
 
-internal fun countSpaces(line: String): Int {
-    val matcher = Pattern.compile("^\\s+").matcher(line)
-    return if (matcher.find()) matcher.group(0).length else 0
-}
-
-internal fun createContext(workspaceDir: String): SyncContext {
-    val dir = Path.of(workspaceDir).toFile()
-    if (!dir.exists()) {
-        throw FileNotFoundException("Workspace directory cannot be found: $dir")
-    }
-    return SyncContext(workspaceDir = dir)
-}
-
-internal fun getBuildInfo(dir: File): BuildInfo =
-    BuildInfo(
-        buildTool = buildTool(dir),
-        language = languageType(dir),
-        buildGradle = buildGradleType(dir),
-        settingsGradle = settingsGradleType(dir),
-        mavenFile = mavenFile(dir)
-    )
-
 internal fun SyncMaster.getCiProvider(provider: CiProviderType): CiProvider =
     ci.providers.first { it.name == provider }
 
+internal fun getLanguageType(dir: File): LanguageType =
+    when {
+        isKotlin(dir) -> LanguageType.KOTLIN
+        isGroovy(dir) -> LanguageType.GROOVY
+        isJava(dir) -> LanguageType.JAVA
+        else -> LanguageType.UNKNOWN
+    }
+
+internal fun getPathAsFile(path: String, vararg paths: String): File =
+    Path.of(path, *paths).toFile()
+
 internal fun getSyncMaster(dir: File): SyncMaster {
-    val file = Path.of("$dir/${SyncFileType.MASTER}").toFile()
+    val file = getPathAsFile(dir.absolutePath, SyncFileType.MASTER.toString())
     if (!file.exists()) {
         throw FileNotFoundException("Sync master file cannot be found: $file")
     }
@@ -77,15 +119,9 @@ internal inline fun <reified T : Any> getSyncObject(file: File): T {
     return objectMapper.readValue(file, T::class.java)
 }
 
-internal fun getSyncProjects(context: SyncContext, selectedProject: String): List<SyncProject> =
-    context.workspaceDir.walkTopDown()
+internal fun getSyncProjects(dir: File): List<SyncProject> =
+    dir.walkTopDown()
         .filter { it.name == SyncFileType.PROJECT.toString() }
-        .filter {
-            selectedProject.isBlank() || it.parentFile.absolutePath == Path.of(
-                context.workspaceDir.absolutePath,
-                selectedProject
-            ).toString()
-        }
         .toList()
         .map { file ->
             getSyncObject<SyncProject>(file).apply {
@@ -95,52 +131,51 @@ internal fun getSyncProjects(context: SyncContext, selectedProject: String): Lis
             }
         }
 
+internal fun getVersionFiles(dir: File): List<FileType> {
+    val files = mutableListOf<FileType>()
+    if (hasFile(dir, BUILD_GRADLE_GROOVY)) files.add(BUILD_GRADLE_GROOVY)
+    if (hasFile(dir, BUILD_GRADLE_KOTLIN)) files.add(BUILD_GRADLE_KOTLIN)
+    if (hasFile(dir, DOCKERFILE)) files.add(DOCKERFILE)
+    if (hasFile(dir, GRADLE_WRAPPER_PROPERTIES)) files.add(GRADLE_WRAPPER_PROPERTIES)
+    if (hasFile(dir, MAVEN_POM)) files.add(MAVEN_POM)
+    if (hasFile(dir, MAVEN_WRAPPER_PROPERTIES)) files.add(MAVEN_WRAPPER_PROPERTIES)
+    if (hasFile(dir, SETTINGS_GRADLE_GROOVY)) files.add(SETTINGS_GRADLE_GROOVY)
+    if (hasFile(dir, SETTINGS_GRADLE_KOTLIN)) files.add(SETTINGS_GRADLE_KOTLIN)
+    if (hasFile(dir, VERSIONS_PROPERTIES)) files.add(VERSIONS_PROPERTIES)
+    return files
+}
+
+internal fun hasFile(dir: File, file: FileType): Boolean =
+    getPathAsFile(dir.absolutePath, file.toString()).exists()
+
+internal fun hasSrcDir(dir: File, type: SrcDirType): Boolean =
+    getPathAsFile(dir.absolutePath, type.toString()).exists()
+
 internal fun isGradle(dir: File): Boolean =
-    Path.of(dir.absolutePath, BuildGradleType.GROOVY.toString()).toFile().exists() ||
-        Path.of(dir.absolutePath, BuildGradleType.KOTLIN.toString()).toFile().exists() ||
-        Path.of(dir.absolutePath, SettingsGradleType.GROOVY.toString()).toFile().exists() ||
-        Path.of(dir.absolutePath, SettingsGradleType.KOTLIN.toString()).toFile().exists()
+    hasFile(dir, BUILD_GRADLE_GROOVY) ||
+        hasFile(dir, BUILD_GRADLE_KOTLIN) ||
+        hasFile(dir, SETTINGS_GRADLE_GROOVY) ||
+        hasFile(dir, SETTINGS_GRADLE_KOTLIN)
 
 internal fun isGradleGroovyDsl(dir: File): Boolean =
-    Path.of(dir.absolutePath, BuildGradleType.GROOVY.toString()).toFile().exists() ||
-        Path.of(dir.absolutePath, SettingsGradleType.GROOVY.toString()).toFile().exists()
+    hasFile(dir, BUILD_GRADLE_GROOVY) ||
+        hasFile(dir, SETTINGS_GRADLE_GROOVY)
 
 internal fun isGradleKotlinDsl(dir: File): Boolean =
-    Path.of(dir.absolutePath, BuildGradleType.KOTLIN.toString()).toFile().exists() ||
-        Path.of(dir.absolutePath, SettingsGradleType.KOTLIN.toString()).toFile().exists()
+    hasFile(dir, BUILD_GRADLE_KOTLIN) ||
+        hasFile(dir, SETTINGS_GRADLE_KOTLIN)
 
 internal fun isGroovy(dir: File): Boolean =
-    Path.of(dir.absolutePath, LanguageSrcDirType.GROOVY.toString()).toFile().exists()
+    hasSrcDir(dir, SrcDirType.GROOVY)
 
 internal fun isJava(dir: File): Boolean =
-    Path.of(dir.absolutePath, LanguageSrcDirType.JAVA.toString()).toFile().exists()
+    hasSrcDir(dir, SrcDirType.JAVA)
 
 internal fun isKotlin(dir: File): Boolean =
-    Path.of(dir.absolutePath, LanguageSrcDirType.KOTLIN.toString()).toFile().exists()
+    hasSrcDir(dir, SrcDirType.KOTLIN)
 
 internal fun isMaven(dir: File): Boolean =
-    Path.of(dir.absolutePath, MavenFileType.POM.toString()).toFile().exists()
-
-internal fun languageType(dir: File): LanguageType =
-    when {
-        isKotlin(dir) -> LanguageType.KOTLIN
-        isGroovy(dir) -> LanguageType.GROOVY
-        isJava(dir) -> LanguageType.JAVA
-        else -> LanguageType.UNKNOWN
-    }
-
-internal fun mavenFile(dir: File): MavenFileType =
-    when {
-        isMaven(dir) -> MavenFileType.POM
-        else -> MavenFileType.NONE
-    }
+    hasFile(dir, MAVEN_POM)
 
 internal fun padSpaces(line: String, spaces: Int) =
     if (spaces == 0) line else line.padStart(line.length + spaces)
-
-internal fun settingsGradleType(dir: File): SettingsGradleType =
-    when {
-        isGradleGroovyDsl(dir) -> SettingsGradleType.GROOVY
-        isGradleKotlinDsl(dir) -> SettingsGradleType.KOTLIN
-        else -> SettingsGradleType.NONE
-    }

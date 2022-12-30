@@ -5,11 +5,11 @@ import com.fasterxml.jackson.annotation.JsonFormat.Shape
 import com.fasterxml.jackson.annotation.JsonValue
 
 @JsonFormat(shape = Shape.OBJECT)
-enum class SettingsGradleType(@JsonValue private val value: String) {
-    GROOVY("settings.gradle"),
-    KOTLIN("settings.gradle.kts"),
-    NONE(""),
+enum class SrcDirType(@JsonValue private val value: String) {
+    GROOVY("src/main/groovy"),
+    JAVA("src/main/java"),
+    KOTLIN("src/main/kotlin"),
     ;
 
-    override fun toString(): String = value
+    override fun toString() = value
 }

@@ -1,5 +1,11 @@
+import java.util.Properties
+
 plugins {
     `kotlin-dsl`
+}
+
+val properties = Properties().apply {
+    load(rootProject.file("../versions.properties").reader())
 }
 
 repositories {
@@ -7,11 +13,20 @@ repositories {
 }
 
 dependencies {
-    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.13.0")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.1")
-    implementation("com.github.kittinunf.fuel:fuel:2.3.1")
-    implementation("com.jayway.jsonpath:json-path:2.4.0")
-    implementation("com.lordcodes.turtle:turtle:0.6.0")
-    implementation("org.apache.commons:commons-lang3:3.12.0")
-    implementation("org.dom4j:dom4j:2.1.3")
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:" + versionFor("com.fasterxml.jackson.dataformat..jackson-dataformat-yaml"))
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:" + versionFor("com.fasterxml.jackson.module..jackson-module-kotlin"))
+    implementation("com.github.kittinunf.fuel:fuel:" + versionFor("com.github.kittinunf.fuel..fuel"))
+    implementation("com.jayway.jsonpath:json-path:" + versionFor("com.jayway.jsonpath..json-path"))
+    implementation("com.lordcodes.turtle:turtle:" + versionFor("com.lordcodes.turtle..turtle"))
+    implementation("org.apache.commons:commons-lang3:" + versionFor("org.apache.commons..commons-lang3"))
+    implementation("org.dom4j:dom4j:" + versionFor("org.dom4j..dom4j"))
+}
+
+fun versionFor(name: String): String {
+    val key = "version.$name"
+    return if (properties.containsKey(key)) {
+        properties[key].toString()
+    } else {
+        ""
+    }
 }

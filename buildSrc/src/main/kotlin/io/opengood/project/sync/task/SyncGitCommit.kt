@@ -5,30 +5,29 @@ import io.opengood.project.sync.model.SyncProject
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
 
-open class SyncCommit : BaseTask() {
+open class SyncGitCommit : BaseTask() {
 
     @Input
-    lateinit var workspaceDir: String
+    lateinit var workspacePath: String
 
     @Input
-    lateinit var selectedProject: String
+    lateinit var projectPath: String
 
     @Input
     lateinit var commitMessage: String
 
     init {
         group = "sync"
-        description = "Commits and pushes sync changes for each project"
+        description = "Performs Git commit and push containing sync changes for each project"
     }
 
     @TaskAction
     fun run() {
         execute(
-            name = TASK_NAME,
+            taskName = TASK_NAME,
             displayName = TASK_DISPLAY_NAME,
-            workspaceDir = workspaceDir,
-            selectedProject = selectedProject,
-            projectDir = project.projectDir.absolutePath
+            workspacePath = workspacePath,
+            projectPath = projectPath
         ) { _, _, project: SyncProject, _ ->
             with(project) {
                 shellRun(dir) {
@@ -65,7 +64,7 @@ open class SyncCommit : BaseTask() {
     }
 
     companion object {
-        const val TASK_NAME = "syncCommit"
-        const val TASK_DISPLAY_NAME = "Sync Commit"
+        const val TASK_NAME = "syncGitCommit"
+        const val TASK_DISPLAY_NAME = "Sync Git Commit"
     }
 }

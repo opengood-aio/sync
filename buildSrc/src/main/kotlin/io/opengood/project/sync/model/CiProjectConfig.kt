@@ -2,14 +2,14 @@ package io.opengood.project.sync.model
 
 import io.opengood.project.sync.enumeration.CiProviderType
 
-data class CiConfig(
+data class CiProjectConfig(
     val provider: CiProviderType,
-    val template: String
+    val template: String,
 ) {
     companion object {
-        val EMPTY = CiConfig(
-            provider = CiProviderType.NONE,
-            template = ""
+        val EMPTY = CiProjectConfig(
+            provider = CiProviderType.UNKNOWN,
+            template = "",
         )
     }
 }

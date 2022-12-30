@@ -4,15 +4,14 @@ import com.github.kittinunf.fuel.httpGet
 import com.github.kittinunf.result.Result
 import com.jayway.jsonpath.JsonPath
 import io.opengood.project.sync.constant.Patterns
-import io.opengood.project.sync.enumeration.VersionFileType
+import io.opengood.project.sync.enumeration.FileType
 import io.opengood.project.sync.enumeration.VersionType
 import io.opengood.project.sync.model.BuildInfo
 import io.opengood.project.sync.model.SyncMaster
 import io.opengood.project.sync.model.SyncProject
-import io.opengood.project.sync.model.VersionMaster
+import io.opengood.project.sync.getVersionFiles
 import io.opengood.project.sync.countSpaces
 import io.opengood.project.sync.padSpaces
-import io.opengood.project.sync.settingsGradleType
 import org.apache.commons.lang3.StringUtils
 import org.dom4j.DocumentHelper
 import org.gradle.api.tasks.Input
@@ -20,15 +19,14 @@ import org.gradle.api.tasks.TaskAction
 import java.io.File
 import java.nio.file.Files
 import java.util.regex.Pattern
-import kotlin.streams.toList
 
 open class SyncVersions : BaseTask() {
 
     @Input
-    lateinit var workspaceDir: String
+    lateinit var workspacePath: String
 
     @Input
-    lateinit var selectedProject: String
+    lateinit var projectPath: String
 
     init {
         group = "sync"
@@ -38,12 +36,21 @@ open class SyncVersions : BaseTask() {
     @TaskAction
     fun run() {
         execute(
-            name = TASK_NAME,
+            taskName = TASK_NAME,
             displayName = TASK_DISPLAY_NAME,
-            workspaceDir = workspaceDir,
-            selectedProject = selectedProject,
-            projectDir = project.projectDir.absolutePath
+            workspacePath = workspacePath,
+            projectPath = projectPath
         ) { _, master: SyncMaster, project: SyncProject, buildInfo: BuildInfo ->
+            val versionFiles = getVersionFiles(project.dir)
+            versionFiles.forEach { versionFile ->
+                
+            }
+
+
+
+
+
+
             val versions = master.versioning
             versions.forEach { version ->
                 printInfo("Determining if project name '${project.name}' is contained in version key '${version.key}'...")
@@ -51,7 +58,7 @@ open class SyncVersions : BaseTask() {
                     printProgress("Project name '${project.name}' is not contained in version key")
 
                     printInfo("Determining if version type '${version.type}' applies...")
-                    if (version.tools.contains(buildInfo.buildTool)) {
+                    if (version.tools.contains(buildInfo.tool)) {
                         printProgress("Version type '${version.type}' applicable")
 
                         version.files.forEach { file ->
@@ -178,11 +185,11 @@ open class SyncVersions : BaseTask() {
         }
     }
 
-    private fun getVersionFile(project: SyncProject, versionFile: VersionFileType): File {
+    private fun getVersionFile(project: SyncProject, versionFile: FileType): File {
         with(project) {
             return when (versionFile) {
-                VersionFileType.BUILD_GRADLE,
-                VersionFileType.SETTINGS_GRADLE -> {
+                FileType.BUILD_GRADLE_GROOVY,
+                FileType.SETTINGS_GRADLE_GROOVY -> {
                     File(dir, settingsGradleType(dir).toString())
                 }
 

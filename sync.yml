@@ -1,5 +1,1 @@
 version: 1.0
-
-ci:
-  provider: None
-  template: ''

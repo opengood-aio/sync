@@ -2,6 +2,7 @@ package io.opengood.project.sync.task
 
 import io.opengood.project.sync.createContext
 import io.opengood.project.sync.getBuildInfo
+import io.opengood.project.sync.getPathAsFile
 import io.opengood.project.sync.getSyncMaster
 import io.opengood.project.sync.getSyncProjects
 import io.opengood.project.sync.model.BuildInfo
@@ -14,33 +15,32 @@ import org.gradle.api.DefaultTask
 import org.gradle.internal.logging.text.StyledTextOutput.Style
 import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.kotlin.dsl.support.serviceOf
-import java.nio.file.Path
 
 open class BaseTask : DefaultTask() {
 
     private val out = project.serviceOf<StyledTextOutputFactory>().create("colored-output")
 
     protected fun execute(
-        name: String,
+        taskName: String,
         displayName: String,
-        workspaceDir: String,
-        selectedProject: String,
-        projectDir: String,
+        workspacePath: String,
+        projectPath: String,
         task: (context: SyncContext, master: SyncMaster, project: SyncProject, buildInfo: BuildInfo) -> Unit
     ) {
-        printHeader(name)
-        printExecute(name)
+        printHeader(taskName)
+        printExecute(taskName)
 
-        val context = createContext(workspaceDir = workspaceDir)
+        val context = createContext(workspacePath = workspacePath, syncProjectPath = project.projectDir.absolutePath)
         printInfo("Sync context...")
         printInfo("Workspace directory: '${context.workspaceDir}'")
+        printInfo("Sync project directory: '${context.syncProjectDir}'")
         printBlankLine()
 
         val master = try {
-            getSyncMaster(Path.of(projectDir).toFile())
+            getSyncMaster(context.syncProjectDir)
         } catch (e: Exception) {
             printException("Unable to parse sync master file", e)
-            printComplete(name)
+            printComplete(taskName)
             SyncMaster.EMPTY
         }
 
@@ -54,10 +54,14 @@ open class BaseTask : DefaultTask() {
             }
 
             val projects = try {
-                getSyncProjects(context, selectedProject)
+                if (projectPath.isNotBlank()) {
+                    getSyncProjects(getPathAsFile(projectPath))
+                } else {
+                    getSyncProjects(context.workspaceDir)
+                }
             } catch (e: Exception) {
-                printException("Unable to parse sync files", e)
-                printComplete(name)
+                printException("Unable to parse project sync files", e)
+                printComplete(taskName)
                 emptyList()
             }
 
@@ -81,18 +85,6 @@ open class BaseTask : DefaultTask() {
                         printInfo("Version: '$version'")
                         printBlankLine()
 
-                        if (buildInfo != BuildInfo.EMPTY) {
-                            with(buildInfo) {
-                                printInfo("Build info...")
-                                printInfo("Build Tool: '$buildTool'")
-                                printInfo("Language: '$language'")
-                                printInfo("Build Gradle: '$buildGradle'")
-                                printInfo("Settings Gradle: '$settingsGradle'")
-                                printInfo("Maven File: '$mavenFile'")
-                                printBlankLine()
-                            }
-                        }
-
                         if (config != ConfigInfo.EMPTY) {
                             with(config) {
                                 printInfo("Config info...")
@@ -104,7 +96,23 @@ open class BaseTask : DefaultTask() {
                         if (git != GitInfo.EMPTY) {
                             with(git) {
                                 printInfo("Git info...")
+                                printInfo("Remote: '$remote'")
                                 printInfo("Branch: '$branch'")
+                                printBlankLine()
+                            }
+                        }
+
+                        if (buildInfo != BuildInfo.EMPTY) {
+                            with(buildInfo) {
+                                printInfo("Build info...")
+                                printInfo("Language: '$language'")
+                                printInfo("Tool: '$tool'")
+                                printInfo("Files:")
+                                if (!files.isEmpty()) {
+                                    files.forEach { file ->
+                                        printInfo("* '${file.toString()}'")
+                                    }
+                                }
                                 printBlankLine()
                             }
                         }
@@ -123,7 +131,7 @@ open class BaseTask : DefaultTask() {
                 }
             }
             printSuccess("Successfully synced $displayName")
-            printComplete(name)
+            printComplete(taskName)
         }
     }
 
@@ -150,7 +158,8 @@ open class BaseTask : DefaultTask() {
 
     protected fun printHeader(name: String) =
         print(
-            Style.Header, true,
+            Style.Header,
+            true,
             "***************************************************",
             "$name task",
             "***************************************************"

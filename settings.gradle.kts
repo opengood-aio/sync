@@ -3,7 +3,3 @@ plugins {
 }
 
 rootProject.name = "sync"
-
-refreshVersions {
-    enableBuildSrcLibs()
-}

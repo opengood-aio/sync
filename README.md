@@ -25,9 +25,7 @@ invoked with a Gradle wrapper embedded in the sync tool's project.
 
 ## Pre-Requisites
 
-### Installations
-
-* Java JDK (17+)
+* Java 17+
 
 ## Setup
 
@@ -44,23 +42,49 @@ to participate in the sync process.
 ```yaml
 version: 1.0
 
+config:
+  enabled: true
+
 git:
-  branch: dev
+  remote: origin
+  branch: main
+
+ci:
+  provider: GitHub Actions
+  template: gradle/lib
 ```
 
-#### Configuration Properties
+#### Main Properties
 
-##### `Root`
+| Name      | Description                            | Required | Default |
+|-----------|----------------------------------------|----------|---------|
+| `config`  | Configuration properties               | No       | `N/A`   |
+| `ci`      | CI task(s) properties                  | No       | `N/A`   |
+| `git`     | Git task(s) properties                 | No       | `N/A`   |
+
+#### Configuration Properties
 
 | Name      | Description                            | Required | Default |
 |-----------|----------------------------------------|----------|---------|
 | `enabled` | Value indicating if syncing is enabled | No       | `true`  |
 
-##### `Git`
+#### Git Task(s) Properties
 
-| Name     | Description                                    | Required | Default |
-|----------|------------------------------------------------|----------|---------|
-| `branch` | Name of Git branch in which to perform syncing | No       | `dev`   |
+| Name     | Description     | Required | Default  |
+|----------|-----------------|----------|----------|
+| `remote` | Git remote name | No       | `origin` |
+| `branch` | Git branch name | No       | `main`   |
+
+#### CI Task(s) Properties
+
+| Name       | Description                   | Required | Default |
+|------------|-------------------------------|----------|---------|
+| `provider` | Name of CI platform provider  | No       | `N/A`   |
+| `template` | Relative path to CI templates | No       | `N/A`   |
+
+##### Supported CI Providers
+
+* `GitHub Actions`
 
 ### Sync Project
 
@@ -68,8 +92,12 @@ To sync a specific project in one's workspace directory, run:
 
 ```bash
 cd <workspace-dir>/sync
-./gradlew sync -PselectedProject=<project-dir>
+./gradlew sync -Pproject=<project-path>
 ```
+
+**Notes:**
+
+* `<project-path>` should be relative to the workspace directory
 
 ### Sync All Projects
 
@@ -79,3 +107,7 @@ To sync all projects in one's workspace directory, run:
 cd <workspace-dir>/sync
 ./gradlew sync
 ```
+
+**Notes:**
+
+* Only project directories with a configured `sync.yml` file will be synced

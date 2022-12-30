@@ -15,6 +15,7 @@ enum class VersionType(@JsonValue private val value: String) {
     MAVEN_NEXUS_DEPENDENCY("Maven Nexus Dependency"),
     MAVEN_PLUGIN("Maven Plugin"),
     MAVEN_WRAPPER("Maven Wrapper"),
+    UNKNOWN(""),
     ;
 
     override fun toString() = value

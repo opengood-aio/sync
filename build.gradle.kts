@@ -1,6 +1,6 @@
 import io.opengood.project.sync.task.Sync
-import io.opengood.project.sync.task.SyncCiPipelines
-import io.opengood.project.sync.task.SyncCommit
+import io.opengood.project.sync.task.SyncCiTemplates
+import io.opengood.project.sync.task.SyncGitCommit
 import io.opengood.project.sync.task.SyncVersions
 import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -36,6 +36,14 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib"))
+
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:_")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:_")
+    implementation("com.github.kittinunf.fuel:fuel:_")
+    implementation("com.jayway.jsonpath:json-path:_")
+    implementation("com.lordcodes.turtle:turtle:_")
+    implementation("org.apache.commons:commons-lang3:_")
+    implementation("org.dom4j:dom4j:_")
 }
 
 fun getProperty(name: String) =
@@ -56,30 +64,30 @@ with(tasks) {
     }
 
     val workspace = project.projectDir.parentFile.absolutePath
-    val selectedProj = getProperty("selectedProject")
-    val commitMsg = project.property("commitMessage").toString()
+    val proj = getProperty("project")
+    val commitMsg = getProperty("commitMessage")
 
     register<Sync>(Sync.TASK_NAME) {
         dependsOn(
-            SyncCiPipelines.TASK_NAME,
+            SyncCiTemplates.TASK_NAME,
             SyncVersions.TASK_NAME,
-            SyncCommit.TASK_NAME
+            SyncGitCommit.TASK_NAME
         )
     }
 
-    register<SyncCiPipelines>(SyncCiPipelines.TASK_NAME) {
-        workspaceDir = workspace
-        selectedProject = selectedProj
+    register<SyncCiTemplates>(SyncCiTemplates.TASK_NAME) {
+        workspacePath = workspace
+        projectPath = proj
     }
 
     register<SyncVersions>(SyncVersions.TASK_NAME) {
-        workspaceDir = workspace
-        selectedProject = selectedProj
+        workspacePath = workspace
+        projectPath = proj
     }
 
-    register<SyncCommit>(SyncCommit.TASK_NAME) {
-        workspaceDir = workspace
-        selectedProject = selectedProj
+    register<SyncGitCommit>(SyncGitCommit.TASK_NAME) {
+        workspacePath = workspace
+        projectPath = proj
         commitMessage = commitMsg
         mustRunAfter(SyncVersions.TASK_NAME)
     }
