@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonFormat.Shape
 import com.fasterxml.jackson.annotation.JsonValue
 
 @JsonFormat(shape = Shape.OBJECT)
-enum class VersionType(@JsonValue private val value: String) {
+enum class VersionProviderType(@JsonValue private val value: String) {
     DOCKER_IMAGE("Docker Image"),
     GRADLE_DEPENDENCY("Gradle Dependency"),
     GRADLE_NEXUS_DEPENDENCY("Gradle Nexus Dependency"),

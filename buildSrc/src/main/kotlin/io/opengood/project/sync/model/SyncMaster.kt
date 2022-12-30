@@ -6,6 +6,7 @@ data class SyncMaster(
     val version: String,
     val config: ConfigInfo = ConfigInfo(),
     val ci: CiMasterConfig,
+    val versions: VersionMasterConfig,
 ) {
     lateinit var dir: File
     lateinit var file: File
@@ -15,6 +16,7 @@ data class SyncMaster(
             version = "",
             config = ConfigInfo.EMPTY,
             ci = CiMasterConfig.EMPTY,
+            versions = VersionMasterConfig.EMPTY,
         )
     }
 }

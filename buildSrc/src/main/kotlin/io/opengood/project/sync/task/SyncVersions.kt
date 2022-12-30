@@ -5,7 +5,7 @@ import com.github.kittinunf.result.Result
 import com.jayway.jsonpath.JsonPath
 import io.opengood.project.sync.constant.Patterns
 import io.opengood.project.sync.enumeration.FileType
-import io.opengood.project.sync.enumeration.VersionType
+import io.opengood.project.sync.enumeration.VersionProviderType
 import io.opengood.project.sync.model.BuildInfo
 import io.opengood.project.sync.model.SyncMaster
 import io.opengood.project.sync.model.SyncProject
@@ -43,7 +43,7 @@ open class SyncVersions : BaseTask() {
         ) { _, master: SyncMaster, project: SyncProject, buildInfo: BuildInfo ->
             val versionFiles = getVersionFiles(project.dir)
             versionFiles.forEach { versionFile ->
-                
+
             }
 
 
@@ -74,16 +74,16 @@ open class SyncVersions : BaseTask() {
                                     printInfo("Determining version number for '${version.name}'")
                                     val versionNumber = try {
                                         when (version.type) {
-                                            VersionType.DOCKER_IMAGE -> {
+                                            VersionProviderType.DOCKER_IMAGE -> {
                                                 getVersion(version, Patterns.DOCKER_IMAGE)
                                             }
 
-                                            VersionType.GRADLE_WRAPPER -> {
+                                            VersionProviderType.GRADLE_WRAPPER -> {
                                                 getVersion(version, Patterns.GRADLE_WRAPPER)
                                             }
 
-                                            VersionType.GRADLE_NEXUS_DEPENDENCY,
-                                            VersionType.MAVEN_NEXUS_DEPENDENCY -> {
+                                            VersionProviderType.GRADLE_NEXUS_DEPENDENCY,
+                                            VersionProviderType.MAVEN_NEXUS_DEPENDENCY -> {
                                                 getVersion(version, Patterns.NEXUS_DEPENDENCY)
                                             }
 
@@ -140,16 +140,16 @@ open class SyncVersions : BaseTask() {
         return when (result) {
             is Result.Success -> {
                 when (version.type) {
-                    VersionType.DOCKER_IMAGE -> {
+                    VersionProviderType.DOCKER_IMAGE -> {
                         JsonPath.parse(result.get()).read<List<String>>(pattern.pattern()).last()
                     }
 
-                    VersionType.GRADLE_WRAPPER -> {
+                    VersionProviderType.GRADLE_WRAPPER -> {
                         JsonPath.parse(result.get()).read(pattern.pattern())
                     }
 
-                    VersionType.GRADLE_NEXUS_DEPENDENCY,
-                    VersionType.MAVEN_NEXUS_DEPENDENCY -> {
+                    VersionProviderType.GRADLE_NEXUS_DEPENDENCY,
+                    VersionProviderType.MAVEN_NEXUS_DEPENDENCY -> {
                         try {
                             JsonPath.parse(result.get()).read<List<Map<String, String>>>(pattern.pattern())
                                 .first {

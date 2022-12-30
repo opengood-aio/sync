@@ -1,12 +1,13 @@
 package io.opengood.project.sync.model
 
 import io.opengood.project.sync.enumeration.BuildToolType
+import io.opengood.project.sync.enumeration.FileType
 import io.opengood.project.sync.enumeration.LanguageType
 
 data class BuildInfo(
     val language: LanguageType,
     val tool: BuildToolType,
-    val files: List<BuildFileType>,
+    val files: List<FileType>,
 ) {
     companion object {
         val EMPTY = BuildInfo(

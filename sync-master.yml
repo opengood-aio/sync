@@ -13,7 +13,39 @@ ci:
         target:
           path: .github/workflows
 
+versions:
+  config:
+    patterns:
+      snapshot-version: 'SNAPSHOT'
+      semantic-version: '(\d+\.)?(\d+\.)?(\*|\d+)'
+      version-number: '(0|[1-9]\d*)\.(0|[1-9]\d*)\.?(0|[1-9]\d*)?(?:(-|\.)((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?'
+      version-number-ignore:
+        - alpha
+        - beta
+        - rc
+        - dev
 
+  providers:
+    # -----------------------------------------------------------
+    # Gradle wrapper
+    # -----------------------------------------------------------
+    - name: Gradle Wrapper
+      tools:
+        - gradle
+      files:
+        - gradle/wrapper/gradle-wrapper.properties
+      read:
+        - index: 0
+          key: distributionUrl
+      uris:
+        - https://services.gradle.org/versions/current
+      parse:
+        - index: 0
+          pattern: '$.version'
+      write:
+        - index: 0
+          key: distributionUrl
+          pattern: '%1$s=https\://services.gradle.org/distributions/gradle-%2$s-all.zip'
 
 
 
