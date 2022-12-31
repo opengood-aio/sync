@@ -15,7 +15,7 @@ enum class FileType(@JsonValue private val value: String) {
     SETTINGS_GRADLE_GROOVY("settings.gradle"),
     SETTINGS_GRADLE_KOTLIN("settings.gradle.kts"),
     VERSIONS_PROPERTIES("versions.properties"),
-    UNKNOWN(""),
+    UNKNOWN("unknown"),
     ;
 
     override fun toString(): String = value

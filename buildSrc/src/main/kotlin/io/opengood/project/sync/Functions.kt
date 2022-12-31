@@ -151,6 +151,9 @@ internal fun getVersionFiles(dir: File): List<File> {
 internal fun <E : Enum<E>> hasPath(dir: File, file: Enum<E>): Boolean =
     getPathAsFile(dir.absolutePath, file.toString()).exists()
 
+internal fun hasPath(dir: File, files: List<String>): Boolean =
+    files.any { getPathAsFile(dir.absolutePath, it).exists() }
+
 internal fun isGradle(dir: File): Boolean =
     hasPath(dir, BUILD_GRADLE_GROOVY) ||
         hasPath(dir, BUILD_GRADLE_KOTLIN) ||
@@ -166,13 +169,13 @@ internal fun isGradleKotlinDsl(dir: File): Boolean =
         hasPath(dir, SETTINGS_GRADLE_KOTLIN)
 
 internal fun isGroovy(dir: File): Boolean =
-    hasPath(dir, SrcDirType.GROOVY)
+    hasPath(dir, SrcDirType.GROOVY.values)
 
 internal fun isJava(dir: File): Boolean =
-    hasPath(dir, SrcDirType.JAVA)
+    hasPath(dir, SrcDirType.JAVA.values)
 
 internal fun isKotlin(dir: File): Boolean =
-    hasPath(dir, SrcDirType.KOTLIN)
+    hasPath(dir, SrcDirType.KOTLIN.values)
 
 internal fun isMaven(dir: File): Boolean =
     hasPath(dir, MAVEN_POM)

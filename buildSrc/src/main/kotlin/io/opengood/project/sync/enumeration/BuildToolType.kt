@@ -6,9 +6,9 @@ import com.fasterxml.jackson.annotation.JsonValue
 
 @JsonFormat(shape = Shape.OBJECT)
 enum class BuildToolType(@JsonValue private val value: String) {
-    GRADLE("gradle"),
-    MAVEN("maven"),
-    UNKNOWN(""),
+    GRADLE("Gradle"),
+    MAVEN("Maven"),
+    UNKNOWN("Unknown"),
     ;
 
     override fun toString(): String = value

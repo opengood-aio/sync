@@ -30,7 +30,7 @@ open class BaseTask : DefaultTask() {
         task: (context: SyncContext, master: SyncMaster, project: SyncProject, buildInfo: BuildInfo) -> Unit
     ) {
         printHeader(taskName)
-        printExecute(taskName)
+        printExecute(displayName)
 
         val context = createContext(workspacePath = workspacePath, syncProjectPath = project.projectDir.absolutePath)
         printInfo("Sync context...")
@@ -42,7 +42,7 @@ open class BaseTask : DefaultTask() {
             getSyncMaster(context.syncProjectDir)
         } catch (e: Exception) {
             printException("Unable to parse sync master file", e)
-            printComplete(taskName)
+            printComplete(displayName)
             SyncMaster.EMPTY
         }
 
@@ -55,7 +55,7 @@ open class BaseTask : DefaultTask() {
                 printBlankLine()
 
                 if (versions != VersionMasterConfig.EMPTY) {
-                    printInfo("Sorting versions provider properties...")
+                    printInfo("Version provider properties...")
                     with(versions) {
                         with(providers) {
                             if (isNotEmpty()) {
@@ -78,7 +78,7 @@ open class BaseTask : DefaultTask() {
 
             val projects = try {
                 if (projectPath.isNotBlank()) {
-                    getSyncProjects(getPathAsFile(projectPath))
+                    getSyncProjects(getPathAsFile(context.workspaceDir.absolutePath, projectPath))
                 } else {
                     getSyncProjects(context.workspaceDir)
                 }
@@ -98,12 +98,9 @@ open class BaseTask : DefaultTask() {
                     }
 
                     with(project) {
-                        printInfo("Project info...")
+                        printInfo("Sync project info...")
                         printInfo("Name: '$name'")
                         printInfo("Directory: '$dir'")
-                        printBlankLine()
-
-                        printInfo("Sync info...")
                         printInfo("File: '$file'")
                         printInfo("Version: '$version'")
                         printBlankLine()
@@ -133,7 +130,7 @@ open class BaseTask : DefaultTask() {
                                 printInfo("Files:")
                                 if (!files.isEmpty()) {
                                     files.forEach { file ->
-                                        printInfo("* '${file.toString()}'")
+                                        printInfo("* ${file.toString()}")
                                     }
                                 }
                                 printBlankLine()
@@ -154,7 +151,7 @@ open class BaseTask : DefaultTask() {
                 }
             }
             printSuccess("Successfully synced $displayName")
-            printComplete(taskName)
+            printComplete(displayName)
         }
     }
 

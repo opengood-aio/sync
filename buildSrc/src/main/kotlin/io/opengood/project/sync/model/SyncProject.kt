@@ -6,7 +6,7 @@ data class SyncProject(
     val version: String,
     val config: ConfigInfo = ConfigInfo(),
     val git: GitInfo = GitInfo(),
-    val ci: CiProjectConfig,
+    val ci: CiProjectConfig = CiProjectConfig.EMPTY,
 ) {
     lateinit var name: String
     lateinit var dir: File

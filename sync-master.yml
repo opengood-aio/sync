@@ -32,9 +32,9 @@ versions:
     - name: gradle-dependency
       type: Gradle Dependency
       tools:
-        - gradle
+        - Gradle
       files:
-        - version.properties
+        - versions.properties
       read:
         - index: 0
           key: group

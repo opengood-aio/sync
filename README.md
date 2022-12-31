@@ -92,7 +92,7 @@ To sync a specific project in one's workspace directory, run:
 
 ```bash
 cd <workspace-dir>/sync
-./gradlew sync -Pproject=<project-path>
+./gradlew sync -PselectedProject=<project-path>
 ```
 
 **Notes:**

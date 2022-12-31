@@ -64,7 +64,7 @@ with(tasks) {
     }
 
     val workspace = project.projectDir.parentFile.absolutePath
-    val proj = getProperty("project")
+    val proj = getProperty("selectedProject")
     val commitMsg = getProperty("commitMessage")
 
     register<Sync>(Sync.TASK_NAME) {
