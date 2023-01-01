@@ -130,7 +130,7 @@ open class BaseTask : DefaultTask() {
                                 printInfo("Files:")
                                 if (!files.isEmpty()) {
                                     files.forEach { file ->
-                                        printInfo("* ${file.toString()}")
+                                        printInfo("* $file")
                                     }
                                 }
                                 printBlankLine()
