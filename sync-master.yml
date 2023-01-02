@@ -36,15 +36,23 @@ versions:
       files:
         - versions.properties
       read:
-        - index: 0
-          key: group
-          pattern: '.*?[version]+?(\.{2})'
-        - index: 1
-          key: name
+        - key: group
+          pattern: '.*?(\.{2})'
+          index: 0
+          trim:
+            - 'version.'
+            - '..'
+        - key: name
           pattern: '\.{2}.*?\='
-        - index: 2
-          key: version
-          pattern: '.*?=\s*(.*)'
+          index: 0
+          trim:
+            - '..'
+            - '='
+        - key: version
+          pattern: '=\s*(.*)'
+          index: 0
+          trim:
+            - '='
       uris:
         - index: 0
           uri: https://repo.maven.apache.org/maven2/{group}/{name}/maven-metadata.xml

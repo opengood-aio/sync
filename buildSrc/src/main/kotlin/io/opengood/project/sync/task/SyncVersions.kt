@@ -93,9 +93,9 @@ open class SyncVersions : BaseTask() {
                 tools.contains(GRADLE) -> {
                     when {
                         files.contains(VERSIONS_PROPERTIES.toString()) -> {
-                            val group = findPatternMatch("group", read, line, 1)
-                            val name = findPatternMatch("name", read, line, 1)
-                            val currentVersion = findPatternMatch("version", read, line, 1)
+                            val group = findPatternMatch("group", read, line)
+                            val name = findPatternMatch("name", read, line)
+                            val currentVersion = findPatternMatch("version", read, line)
 
                             if (group != VersionPatternResult.EMPTY &&
                                 name != VersionPatternResult.EMPTY &&
@@ -136,7 +136,10 @@ open class SyncVersions : BaseTask() {
                                                 !versionNumberIgnore.any { node.text.contains(it) }
                                         }.text
                                 } catch (e: Exception) {
-                                    printWarning("Unable to parse version number from response for version provider '$type'", e)
+                                    printWarning(
+                                        "Unable to parse version number from response for version provider '$type'",
+                                        e
+                                    )
                                     StringUtils.EMPTY
                                 }
                             }
@@ -144,7 +147,10 @@ open class SyncVersions : BaseTask() {
                     }
 
                     is Result.Failure -> {
-                        printWarning("Unable to retrieve version number from request URI '$uri' for version provider '$type'", result.getException())
+                        printWarning(
+                            "Unable to retrieve version number from request URI '$uri' for version provider '$type'",
+                            result.getException()
+                        )
                         StringUtils.EMPTY
                     }
                 }
@@ -155,13 +161,20 @@ open class SyncVersions : BaseTask() {
     private fun findPatternMatch(
         key: String,
         patterns: List<VersionPattern>,
-        value: String,
-        index: Int
+        value: String
     ): VersionPatternResult {
         val pattern = patterns.first { it.key == key }
-        val matcher = Pattern.compile(pattern.pattern).matcher(value)
-        if (matcher.find()) {
-            return VersionPatternResult(key = key, value = matcher.group(index))
+        with(pattern) {
+            val matcher = Pattern.compile(this.pattern).matcher(value)
+            if (matcher.find()) {
+                var match = matcher.group(index)
+                if (trim.isNotEmpty()) {
+                    trim.forEach {
+                        match = match.replace(it, StringUtils.EMPTY)
+                    }
+                }
+                return VersionPatternResult(key = key, value = match)
+            }
         }
         return VersionPatternResult.EMPTY
     }
