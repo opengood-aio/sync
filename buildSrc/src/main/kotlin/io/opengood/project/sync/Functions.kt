@@ -18,11 +18,7 @@ import io.opengood.project.sync.enumeration.FileType.VERSIONS_PROPERTIES
 import io.opengood.project.sync.enumeration.LanguageType
 import io.opengood.project.sync.enumeration.SrcDirType
 import io.opengood.project.sync.enumeration.SyncFileType
-import io.opengood.project.sync.model.BuildInfo
-import io.opengood.project.sync.model.CiProvider
-import io.opengood.project.sync.model.SyncContext
-import io.opengood.project.sync.model.SyncMaster
-import io.opengood.project.sync.model.SyncProject
+import io.opengood.project.sync.model.*
 import java.io.File
 import java.io.FileNotFoundException
 import java.nio.file.Path
@@ -91,6 +87,9 @@ internal fun getBuildTool(dir: File): BuildToolType =
 internal fun SyncMaster.getCiProvider(provider: CiProviderType): CiProvider =
     ci.providers.first { it.name == provider }
 
+internal fun getGroupAsPath(group: String): String =
+    group.replace(".", "/")
+
 internal fun getLanguageType(dir: File): LanguageType =
     when {
         isKotlin(dir) -> LanguageType.KOTLIN
@@ -104,6 +103,9 @@ internal fun getPathAsFile(path: String, vararg paths: String): File =
 
 internal fun <E : Enum<E>> getPathAsFile(dir: File, file: Enum<E>): File =
     Path.of(dir.absolutePath, file.toString()).toFile()
+
+internal fun Array<out VersionPatternResult>.getPatternValue(key: String): String =
+    this.first { it.key == key }.value
 
 internal fun getSyncMaster(dir: File): SyncMaster {
     val file = getPathAsFile(dir, SyncFileType.MASTER)
@@ -180,5 +182,5 @@ internal fun isKotlin(dir: File): Boolean =
 internal fun isMaven(dir: File): Boolean =
     hasPath(dir, MAVEN_POM)
 
-internal fun padSpaces(line: String, spaces: Int) =
+internal fun padSpaces(line: String, spaces: Int): String =
     if (spaces == 0) line else line.padStart(line.length + spaces)

@@ -5,6 +5,8 @@ import com.github.kittinunf.result.Result
 import io.opengood.project.sync.countSpaces
 import io.opengood.project.sync.enumeration.BuildToolType.GRADLE
 import io.opengood.project.sync.enumeration.FileType.VERSIONS_PROPERTIES
+import io.opengood.project.sync.getGroupAsPath
+import io.opengood.project.sync.getPatternValue
 import io.opengood.project.sync.getVersionFiles
 import io.opengood.project.sync.model.SyncMaster
 import io.opengood.project.sync.model.SyncProject
@@ -188,8 +190,8 @@ open class SyncVersions : BaseTask() {
             with(uri) {
                 when {
                     tools.contains(GRADLE) -> {
-                        val group = params.getValue("group").asPath()
-                        val name = params.getValue("name")
+                        val group = getGroupAsPath(params.getPatternValue("group"))
+                        val name = params.getPatternValue("name")
                         this.uri.replace("{group}", group).replace("{name}", name)
                     }
 
@@ -215,12 +217,6 @@ open class SyncVersions : BaseTask() {
         }
         return StringUtils.EMPTY
     }
-
-    private fun String.asPath(): String =
-        this.replace(".", "/")
-
-    private fun Array<out VersionPatternResult>.getValue(key: String): String =
-        this.first { it.key == key }.value
 
     companion object {
         const val TASK_NAME = "syncVersions"
