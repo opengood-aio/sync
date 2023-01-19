@@ -7,10 +7,12 @@ import io.opengood.project.sync.enumeration.BuildToolType.GRADLE
 import io.opengood.project.sync.enumeration.FileType.VERSIONS_PROPERTIES
 import io.opengood.project.sync.getGroupAsPath
 import io.opengood.project.sync.getPatternValue
+import io.opengood.project.sync.getVersionData
 import io.opengood.project.sync.getVersionFiles
 import io.opengood.project.sync.model.SyncMaster
 import io.opengood.project.sync.model.SyncProject
-import io.opengood.project.sync.model.VersionConfigPatterns
+import io.opengood.project.sync.model.VersionData
+import io.opengood.project.sync.model.VersionExclusion
 import io.opengood.project.sync.model.VersionPattern
 import io.opengood.project.sync.model.VersionPatternResult
 import io.opengood.project.sync.model.VersionProvider
@@ -57,13 +59,13 @@ open class SyncVersions : BaseTask() {
                             with(master.versions) {
                                 with(config) {
                                     providers.forEach { provider ->
+                                        val data = getVersionData(master.versions, project.versions, provider)
                                         with(provider) {
                                             if (files.contains(versionFile.name)) {
                                                 currentLine = changeLine(
                                                     currentLine,
                                                     spaces,
-                                                    provider,
-                                                    patterns,
+                                                    data,
                                                     prevLine,
                                                     priorLine
                                                 )
@@ -86,33 +88,34 @@ open class SyncVersions : BaseTask() {
     private fun changeLine(
         line: String,
         spaces: Int,
-        provider: VersionProvider,
-        patterns: VersionConfigPatterns,
-        vararg lines: String
+        data: VersionData,
+        vararg otherLines: String
     ): String {
-        with(provider) {
-            return when {
-                tools.contains(GRADLE) -> {
-                    when {
-                        files.contains(VERSIONS_PROPERTIES.toString()) -> {
-                            val group = findPatternMatch("group", read, line)
-                            val name = findPatternMatch("name", read, line)
-                            val currentVersion = findPatternMatch("version", read, line)
+        with(data) {
+            with(provider) {
+                return when {
+                    tools.contains(GRADLE) -> {
+                        when {
+                            files.contains(VERSIONS_PROPERTIES.toString()) -> {
+                                val group = findPatternMatch("group", read, line)
+                                val name = findPatternMatch("name", read, line)
+                                val currentVersion = findPatternMatch("version", read, line)
 
-                            if (group != VersionPatternResult.EMPTY &&
-                                name != VersionPatternResult.EMPTY &&
-                                currentVersion != VersionPatternResult.EMPTY
-                            ) {
-                                val newVersion = getVersionNumber(provider, patterns, group, name)
+                                if (group != VersionPatternResult.EMPTY &&
+                                    name != VersionPatternResult.EMPTY &&
+                                    currentVersion != VersionPatternResult.EMPTY
+                                ) {
+                                    val newVersion = getVersionNumber(data, group, name)
+                                }
+                                line
                             }
-                            line
+
+                            else -> line
                         }
-
-                        else -> line
                     }
-                }
 
-                else -> line
+                    else -> line
+                }
             }
         }
     }
@@ -120,40 +123,45 @@ open class SyncVersions : BaseTask() {
     private fun downloadVersionNumber(
         uri: String,
         pattern: String,
-        provider: VersionProvider,
-        patterns: VersionConfigPatterns
+        data: VersionData,
+        vararg params: VersionPatternResult
     ): String {
-        with(provider) {
-            with(patterns) {
-                val (_, _, result) = uri.httpGet().responseString()
-                return when (result) {
-                    is Result.Success -> {
-                        when (type) {
-                            else -> {
-                                try {
-                                    val document = DocumentHelper.parseText(result.get())
-                                    document.selectNodes(pattern)
-                                        .last { node ->
-                                            versionNumber.toRegex().matches(node.text) &&
-                                                !versionNumberIgnore.any { node.text.contains(it) }
-                                        }.text
-                                } catch (e: Exception) {
-                                    printWarning(
-                                        "Unable to parse version number from response for version provider '$type'",
-                                        e
-                                    )
-                                    StringUtils.EMPTY
+        with(data) {
+            with(provider) {
+                with(config.patterns) {
+                    val (_, _, result) = uri.httpGet().responseString()
+                    return when (result) {
+                        is Result.Success -> {
+                            when (type) {
+                                else -> {
+                                    try {
+                                        val document = DocumentHelper.parseText(result.get())
+                                        document.selectNodes(pattern)
+                                            .filter { node ->
+                                                !isVersionNumberExcluded(node.text, exclusions, *params)
+                                            }
+                                            .last { node ->
+                                                versionNumber.toRegex().matches(node.text) &&
+                                                    !versionNumberIgnore.any { node.text.contains(it) }
+                                            }.text
+                                    } catch (e: Exception) {
+                                        printWarning(
+                                            "Unable to parse version number from response for version provider '$type'",
+                                            e
+                                        )
+                                        StringUtils.EMPTY
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    is Result.Failure -> {
-                        printWarning(
-                            "Unable to retrieve version number from request URI '$uri' for version provider '$type'",
-                            result.getException()
-                        )
-                        StringUtils.EMPTY
+                        is Result.Failure -> {
+                            printWarning(
+                                "Unable to retrieve version number from request URI '$uri' for version provider '$type'",
+                                result.getException()
+                            )
+                            StringUtils.EMPTY
+                        }
                     }
                 }
             }
@@ -202,20 +210,38 @@ open class SyncVersions : BaseTask() {
     }
 
     private fun getVersionNumber(
-        provider: VersionProvider,
-        patterns: VersionConfigPatterns,
+        data: VersionData,
         vararg params: VersionPatternResult
     ): String {
-        with(provider) {
-            uris.forEach { uri ->
-                val downloadUri = getUri(uri, provider, *params)
-                val versionNumber = downloadVersionNumber(downloadUri, uri.pattern, provider, patterns)
-                if (versionNumber.isNotBlank()) {
-                    return versionNumber
+        with(data) {
+            with(provider) {
+                uris.forEach { uri ->
+                    val downloadUri = getUri(uri, provider, *params)
+                    val versionNumber = downloadVersionNumber(downloadUri, uri.pattern, data, *params)
+                    if (versionNumber.isNotBlank()) {
+                        return versionNumber
+                    }
                 }
             }
         }
         return StringUtils.EMPTY
+    }
+
+    private fun isVersionNumberExcluded(
+        versionNumber: String,
+        exclusions: List<VersionExclusion>,
+        vararg params: VersionPatternResult
+    ): Boolean {
+        return if (exclusions.isEmpty()) {
+            true
+        } else {
+            val group = params.getPatternValue("group")
+            val name = params.getPatternValue("name")
+            exclusions
+                .filter { it.group == group && it.name == name }
+                .flatMap { it.versions }
+                .any { versionNumber.startsWith(it.removeSuffix("*")) }
+        }
     }
 
     companion object {

@@ -7,6 +7,7 @@ data class SyncProject(
     val config: ConfigInfo = ConfigInfo(),
     val git: GitInfo = GitInfo(),
     val ci: CiProjectConfig = CiProjectConfig.EMPTY,
+    val versions: VersionProjectConfig = VersionProjectConfig.EMPTY,
 ) {
     lateinit var name: String
     lateinit var dir: File
@@ -18,6 +19,7 @@ data class SyncProject(
             config = ConfigInfo.EMPTY,
             git = GitInfo.EMPTY,
             ci = CiProjectConfig.EMPTY,
+            versions = VersionProjectConfig.EMPTY,
         )
     }
 }

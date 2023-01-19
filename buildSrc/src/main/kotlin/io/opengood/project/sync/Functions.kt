@@ -136,6 +136,17 @@ internal fun getSyncProjects(dir: File): List<SyncProject> =
             }
         }
 
+internal fun getVersionData(
+    master: VersionMasterConfig,
+    project: VersionProjectConfig,
+    provider: VersionProvider
+) =
+    VersionData(
+        config = master.config,
+        exclusions = master.exclusions + project.exclusions,
+        provider = provider
+    )
+
 internal fun getVersionFiles(dir: File): List<File> {
     val files = mutableListOf<File>()
     if (hasPath(dir, BUILD_GRADLE_GROOVY)) files.add(getPathAsFile(dir, BUILD_GRADLE_GROOVY))
