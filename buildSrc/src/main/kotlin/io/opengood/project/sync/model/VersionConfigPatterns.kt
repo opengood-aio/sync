@@ -3,8 +3,8 @@ package io.opengood.project.sync.model
 import com.fasterxml.jackson.annotation.JsonProperty
 
 data class VersionConfigPatterns(
-    @JsonProperty("snapshot-version")
-    val snapshotVersion: String,
+    @JsonProperty("dev-version")
+    val devVersion: String,
     @JsonProperty("semantic-version")
     val semanticVersion: String,
     @JsonProperty("version-number")
@@ -14,7 +14,7 @@ data class VersionConfigPatterns(
 ) {
     companion object {
         val EMPTY = VersionConfigPatterns(
-            snapshotVersion = "",
+            devVersion = "",
             semanticVersion = "",
             versionNumber = "",
             versionNumberIgnore = emptyList(),

@@ -1,10 +1,9 @@
 package io.opengood.project.sync.model
 
-import io.opengood.project.sync.enumeration.BuildToolType
 import io.opengood.project.sync.enumeration.VersionProviderType
 
 data class VersionExclusion(
-    val title: String,
+    val description: String,
     val type: VersionProviderType,
     val group: String,
     val name: String,
@@ -12,7 +11,7 @@ data class VersionExclusion(
 ) {
     companion object {
         val EMPTY = VersionExclusion(
-            title = "",
+            description = "",
             type = VersionProviderType.UNKNOWN,
             group = "",
             name = "",

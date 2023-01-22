@@ -1,14 +1,14 @@
 package io.opengood.project.sync.task
 
-import io.opengood.project.sync.getCiProvider
+import io.opengood.project.sync.enumeration.CiProviderType
 import io.opengood.project.sync.getPathAsFile
 import io.opengood.project.sync.model.CiProjectConfig
+import io.opengood.project.sync.model.CiProvider
 import io.opengood.project.sync.model.SyncContext
 import io.opengood.project.sync.model.SyncMaster
 import io.opengood.project.sync.model.SyncProject
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
-import java.io.File
 import java.io.FileNotFoundException
 
 open class SyncCiTemplates : BaseTask() {
@@ -60,6 +60,9 @@ open class SyncCiTemplates : BaseTask() {
             }
         }
     }
+
+    private fun SyncMaster.getCiProvider(provider: CiProviderType): CiProvider =
+        ci.providers.first { it.name == provider }
 
     companion object {
         const val TASK_NAME = "syncCiTemplates"

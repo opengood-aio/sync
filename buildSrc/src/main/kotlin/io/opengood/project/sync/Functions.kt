@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.fasterxml.jackson.module.kotlin.kotlinModule
 import io.opengood.project.sync.enumeration.BuildToolType
-import io.opengood.project.sync.enumeration.CiProviderType
 import io.opengood.project.sync.enumeration.FileType
 import io.opengood.project.sync.enumeration.FileType.BUILD_GRADLE_GROOVY
 import io.opengood.project.sync.enumeration.FileType.BUILD_GRADLE_KOTLIN
@@ -18,7 +17,10 @@ import io.opengood.project.sync.enumeration.FileType.VERSIONS_PROPERTIES
 import io.opengood.project.sync.enumeration.LanguageType
 import io.opengood.project.sync.enumeration.SrcDirType
 import io.opengood.project.sync.enumeration.SyncFileType
-import io.opengood.project.sync.model.*
+import io.opengood.project.sync.model.BuildInfo
+import io.opengood.project.sync.model.SyncContext
+import io.opengood.project.sync.model.SyncMaster
+import io.opengood.project.sync.model.SyncProject
 import java.io.File
 import java.io.FileNotFoundException
 import java.nio.file.Path
@@ -84,9 +86,6 @@ internal fun getBuildTool(dir: File): BuildToolType =
         else -> BuildToolType.UNKNOWN
     }
 
-internal fun SyncMaster.getCiProvider(provider: CiProviderType): CiProvider =
-    ci.providers.first { it.name == provider }
-
 internal fun getGroupAsPath(group: String): String =
     group.replace(".", "/")
 
@@ -103,9 +102,6 @@ internal fun getPathAsFile(path: String, vararg paths: String): File =
 
 internal fun <E : Enum<E>> getPathAsFile(dir: File, file: Enum<E>): File =
     Path.of(dir.absolutePath, file.toString()).toFile()
-
-internal fun Array<out VersionPatternResult>.getPatternValue(key: String): String =
-    this.first { it.key == key }.value
 
 internal fun getSyncMaster(dir: File): SyncMaster {
     val file = getPathAsFile(dir, SyncFileType.MASTER)
@@ -135,17 +131,6 @@ internal fun getSyncProjects(dir: File): List<SyncProject> =
                 this.file = file
             }
         }
-
-internal fun getVersionData(
-    master: VersionMasterConfig,
-    project: VersionProjectConfig,
-    provider: VersionProvider
-) =
-    VersionData(
-        config = master.config,
-        exclusions = master.exclusions + project.exclusions,
-        provider = provider
-    )
 
 internal fun getVersionFiles(dir: File): List<File> {
     val files = mutableListOf<File>()

@@ -16,7 +16,7 @@ ci:
 versions:
   config:
     patterns:
-      snapshot-version: 'SNAPSHOT'
+      dev-version: '.*\-SNAPSHOT'
       semantic-version: '(\d+\.)?(\d+\.)?(\*|\d+)'
       version-number: '(0|[1-9]\d*)\.(0|[1-9]\d*)\.?(0|[1-9]\d*)?(?:(-|\.)((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?'
       version-number-ignore:
@@ -26,7 +26,7 @@ versions:
         - dev
 
   exclusions:
-    - title: spring-boot-3
+    - description: spring-boot-3
       type: Gradle Dependency
       group: org.springframework.boot
       name: spring-boot-starter-parent
@@ -62,9 +62,9 @@ versions:
           trim:
             - '='
       uris:
-        - index: 0
-          uri: https://repo.maven.apache.org/maven2/{group}/{name}/maven-metadata.xml
+        - uri: https://repo.maven.apache.org/maven2/{group}/{name}/maven-metadata.xml
           pattern: '//metadata/versioning/versions/version'
+          index: 0
       write:
         - index: 0
           key: version
