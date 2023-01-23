@@ -5,6 +5,7 @@ data class VersionPattern(
     val pattern: String,
     val index: Int,
     val trim: List<String> = emptyList(),
+    val newLine: Boolean = false,
 ) {
     companion object {
         val EMPTY = VersionPattern(
@@ -12,6 +13,7 @@ data class VersionPattern(
             pattern = "",
             index = -1,
             trim = emptyList(),
+            newLine = false,
         )
     }
 }

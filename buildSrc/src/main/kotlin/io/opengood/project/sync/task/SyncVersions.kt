@@ -19,6 +19,7 @@ import io.opengood.project.sync.model.VersionPattern
 import io.opengood.project.sync.model.VersionProjectConfig
 import io.opengood.project.sync.model.VersionProvider
 import io.opengood.project.sync.model.VersionUri
+import io.opengood.project.sync.padSpaces
 import org.apache.commons.lang3.StringUtils
 import org.dom4j.DocumentHelper
 import org.gradle.api.tasks.Input
@@ -101,6 +102,9 @@ open class SyncVersions : BaseTask() {
                                         if (group.isNotBlank() && name.isNotBlank() && currentVersion.isNotBlank()) {
                                             if (!isVersionNumberDev(currentVersion, patterns)) {
                                                 newVersion = getVersionNumber(data)
+                                                if (currentVersion != newVersion) {
+                                                    return formatLine(data)
+                                                }
                                             }
                                         }
                                     }
@@ -174,6 +178,44 @@ open class SyncVersions : BaseTask() {
         return StringUtils.EMPTY
     }
 
+    private fun formatLine(data: VersionChangeData): String {
+        with(data) {
+            with(provider) {
+                with(attributes) {
+                    with(line) {
+                        if (write.isNotEmpty()) {
+                            val builder = StringBuilder()
+                            write.forEach {
+                                var line = it.pattern
+
+                                val map = mapOf(
+                                    "group" to group,
+                                    "name" to name,
+                                    "version" to newVersion
+                                )
+                                map.forEach {
+                                    if (line.contains("{${it.key}}")) {
+                                        line = line.replace("{${it.key}}", it.value)
+                                    }
+                                }
+
+                                line = padSpaces(line, spaces)
+
+                                if (it.newLine) {
+                                    builder.appendLine(line)
+                                } else {
+                                    builder.append(line)
+                                }
+                            }
+                            return builder.toString()
+                        }
+                        return currentLine
+                    }
+                }
+            }
+        }
+    }
+
     private fun getUri(uri: VersionUri, data: VersionChangeData): String {
         return with(data) {
             with(provider) {
@@ -237,7 +279,7 @@ open class SyncVersions : BaseTask() {
         attributes: VersionAttributes
     ): Boolean {
         return if (exclusions.isEmpty()) {
-            true
+            false
         } else {
             with(attributes) {
                 exclusions

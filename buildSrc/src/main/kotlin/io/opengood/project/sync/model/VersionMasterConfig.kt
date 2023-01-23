@@ -4,7 +4,7 @@ import java.io.File
 
 data class VersionMasterConfig(
     val config: VersionConfig,
-    val exclusions: List<VersionExclusion>,
+    val exclusions: List<VersionExclusion> = emptyList(),
     val providers: List<VersionProvider>,
 ) {
     companion object {

@@ -66,6 +66,6 @@ versions:
           pattern: '//metadata/versioning/versions/version'
           index: 0
       write:
-        - index: 0
-          key: version
-          pattern: '%1$s=%2$s'
+        - key: version
+          pattern: 'version.{group}..{name}={version}'
+          index: 0
