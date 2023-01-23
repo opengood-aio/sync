@@ -175,7 +175,7 @@ open class SyncVersions : BaseTask() {
     }
 
     private fun getUri(uri: VersionUri, data: VersionChangeData): String {
-        return with (data) {
+        return with(data) {
             with(provider) {
                 with(attributes) {
                     with(uri) {
