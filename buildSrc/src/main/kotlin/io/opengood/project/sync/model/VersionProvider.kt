@@ -1,13 +1,14 @@
 package io.opengood.project.sync.model
 
 import io.opengood.project.sync.enumeration.BuildToolType
+import io.opengood.project.sync.enumeration.FileType
 import io.opengood.project.sync.enumeration.VersionProviderType
 
 data class VersionProvider(
     val name: String,
     val type: VersionProviderType,
     val tools: List<BuildToolType>,
-    val files: List<String>,
+    val files: List<FileType>,
     val read: List<VersionPattern>,
     val uris: List<VersionUri>,
     val write: List<VersionPattern>,

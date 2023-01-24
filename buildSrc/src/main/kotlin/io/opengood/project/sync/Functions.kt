@@ -31,6 +31,9 @@ internal fun countSpaces(line: String): Int {
     return if (matcher.find()) matcher.group(0).length else 0
 }
 
+internal fun <E : Enum<E>> List<Enum<E>>.containsAny(vararg items: Enum<E>): Boolean =
+    this.any { e -> items.any { it == e } }
+
 internal fun createContext(workspacePath: String, syncProjectPath: String): SyncContext {
     val workspaceDir = getPathAsFile(workspacePath)
     if (!workspaceDir.exists()) {
@@ -104,7 +107,11 @@ internal fun <E : Enum<E>> getPathAsFile(dir: File, file: Enum<E>): File =
     Path.of(dir.absolutePath, file.toString()).toFile()
 
 internal fun getSyncMaster(dir: File): SyncMaster {
-    val file = getPathAsFile(dir, SyncFileType.MASTER)
+    val file = if (hasPath(dir, SyncFileType.MASTER_OVERRIDE)) {
+        getPathAsFile(dir, SyncFileType.MASTER_OVERRIDE)
+    } else {
+        getPathAsFile(dir, SyncFileType.MASTER)
+    }
     if (!file.exists()) {
         throw FileNotFoundException("Sync master file cannot be found: $file")
     }
@@ -180,3 +187,6 @@ internal fun isMaven(dir: File): Boolean =
 
 internal fun padSpaces(line: String, spaces: Int): String =
     if (spaces == 0) line else line.padStart(line.length + spaces)
+
+internal inline fun <reified E : Enum<E>> String.toEnum(): Enum<E>? =
+    enumValues<E>().firstOrNull { it.toString().equals(this, ignoreCase = true) }

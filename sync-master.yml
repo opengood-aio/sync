@@ -69,3 +69,37 @@ versions:
         - key: version
           pattern: 'version.{group}..{name}={version}'
           index: 0
+
+    - name: maven-dependency
+      type: Maven Dependency
+      tools:
+        - Maven
+      files:
+        - pom.xml
+      read:
+        - key: group
+          pattern: '(?<=groupId\>)(.+)(?=\<)'
+          index: 0
+          trim:
+            - '<groupId>'
+            - '</groupId>'
+        - key: name
+          pattern: '(?<=artifactId\>)(.+)(?=\<)'
+          index: 0
+          trim:
+            - '<artifactId>'
+            - '</artifactId>'
+        - key: version
+          pattern: '(?<=version\>)(.+)(?=\<)'
+          index: 0
+          trim:
+            - '<version>'
+            - '</version>'
+      uris:
+        - uri: https://repo.maven.apache.org/maven2/{group}/{name}/maven-metadata.xml
+          pattern: '//metadata/versioning/versions/version'
+          index: 0
+      write:
+        - key: version
+          pattern: '<version>{version}</version>'
+          index: 0

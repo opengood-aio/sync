@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonValue
 @JsonFormat(shape = Shape.OBJECT)
 enum class SyncFileType(@JsonValue private val value: String) {
     MASTER("sync-master.yml"),
+    MASTER_OVERRIDE("sync-master-override.yml"),
     PROJECT("sync.yml"),
     ;
 

@@ -17,3 +17,6 @@ build/
 
 ### GitHub Actions ###
 \~/
+
+### Config Files ###
+sync-master-override.yml

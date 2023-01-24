@@ -2,8 +2,11 @@ package io.opengood.project.sync.task
 
 import com.github.kittinunf.fuel.httpGet
 import com.github.kittinunf.result.Result
+import io.opengood.project.sync.containsAny
 import io.opengood.project.sync.countSpaces
 import io.opengood.project.sync.enumeration.BuildToolType.GRADLE
+import io.opengood.project.sync.enumeration.BuildToolType.MAVEN
+import io.opengood.project.sync.enumeration.FileType.MAVEN_POM
 import io.opengood.project.sync.enumeration.FileType.VERSIONS_PROPERTIES
 import io.opengood.project.sync.getGroupAsPath
 import io.opengood.project.sync.getVersionFiles
@@ -20,6 +23,7 @@ import io.opengood.project.sync.model.VersionProjectConfig
 import io.opengood.project.sync.model.VersionProvider
 import io.opengood.project.sync.model.VersionUri
 import io.opengood.project.sync.padSpaces
+import io.opengood.project.sync.toEnum
 import org.apache.commons.lang3.StringUtils
 import org.dom4j.DocumentHelper
 import org.gradle.api.tasks.Input
@@ -69,7 +73,7 @@ open class SyncVersions : BaseTask() {
                                         priorLine
                                     )
                                     with(provider) {
-                                        if (files.contains(versionFile.name)) {
+                                        if (files.contains(versionFile.name.toEnum())) {
                                             currentLine = changeLine(data)
                                         }
                                     }
@@ -91,13 +95,14 @@ open class SyncVersions : BaseTask() {
             with(provider) {
                 with(line) {
                     return when {
-                        tools.contains(GRADLE) -> {
+                        tools.containsAny(GRADLE, MAVEN) -> {
                             when {
-                                files.contains(VERSIONS_PROPERTIES.toString()) -> {
+                                files.containsAny(MAVEN_POM, VERSIONS_PROPERTIES) -> {
                                     with(attributes) {
-                                        group = findPatternMatch("group", read, currentLine)
-                                        name = findPatternMatch("name", read, currentLine)
-                                        currentVersion = findPatternMatch("version", read, currentLine)
+                                        group = findPatternMatch("group", read, getPatternLine("group", data))
+                                        name = findPatternMatch("name", read, getPatternLine("name", data))
+                                        currentVersion =
+                                            findPatternMatch("version", read, getPatternLine("version", data))
 
                                         if (group.isNotBlank() && name.isNotBlank() && currentVersion.isNotBlank()) {
                                             if (!isVersionNumberDev(currentVersion, patterns)) {
@@ -216,13 +221,33 @@ open class SyncVersions : BaseTask() {
         }
     }
 
+    private fun getPatternLine(key: String, data: VersionChangeData): String {
+        with(data) {
+            with(provider) {
+                with(line) {
+                    return when {
+                        tools.containsAny(MAVEN) -> {
+                            when (key) {
+                                "group" -> priorLine
+                                "name" -> prevLine
+                                else -> currentLine
+                            }
+                        }
+
+                        else -> currentLine
+                    }
+                }
+            }
+        }
+    }
+
     private fun getUri(uri: VersionUri, data: VersionChangeData): String {
         return with(data) {
             with(provider) {
                 with(attributes) {
                     with(uri) {
                         when {
-                            tools.contains(GRADLE) -> {
+                            tools.containsAny(GRADLE, MAVEN) -> {
                                 val group = getGroupAsPath(group)
                                 val name = name
                                 this.uri.replace("{group}", group).replace("{name}", name)
