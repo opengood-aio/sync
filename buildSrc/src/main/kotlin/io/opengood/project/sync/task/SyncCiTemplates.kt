@@ -38,12 +38,12 @@ open class SyncCiTemplates : BaseTask() {
                     val srcDir =
                         getPathAsFile(context.workspaceDir.absolutePath, src.repo, src.path, project.ci.template)
                     if (!srcDir.exists()) {
-                        throw FileNotFoundException("CI templates source directory cannot be found: $srcDir")
+                        throw FileNotFoundException("CI templates source directory cannot be found: '$srcDir'")
                     }
 
                     val targetDir = getPathAsFile(project.dir.absolutePath, target.path)
                     if (!targetDir.exists()) {
-                        throw FileNotFoundException("CI pipelines target directory cannot be found: $targetDir")
+                        throw FileNotFoundException("CI pipelines target directory cannot be found: '$targetDir'")
                     }
 
                     printInfo("Copying CI provider '${project.ci.provider}' templates from source directory: '$srcDir'...")

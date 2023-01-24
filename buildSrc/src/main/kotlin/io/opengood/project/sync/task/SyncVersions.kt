@@ -2,12 +2,16 @@ package io.opengood.project.sync.task
 
 import com.github.kittinunf.fuel.httpGet
 import com.github.kittinunf.result.Result
+import com.jayway.jsonpath.JsonPath
 import io.opengood.project.sync.containsAny
 import io.opengood.project.sync.countSpaces
 import io.opengood.project.sync.enumeration.BuildToolType.GRADLE
 import io.opengood.project.sync.enumeration.BuildToolType.MAVEN
 import io.opengood.project.sync.enumeration.FileType.MAVEN_POM
 import io.opengood.project.sync.enumeration.FileType.VERSIONS_PROPERTIES
+import io.opengood.project.sync.enumeration.VersionSourceType.MAVEN_CENTRAL
+import io.opengood.project.sync.enumeration.VersionSourceType.NEXUS_HOSTED_REPO
+import io.opengood.project.sync.enumeration.VersionSourceType.NEXUS_PROXY_REPO
 import io.opengood.project.sync.getGroupAsPath
 import io.opengood.project.sync.getVersionFiles
 import io.opengood.project.sync.model.SyncMaster
@@ -23,6 +27,7 @@ import io.opengood.project.sync.model.VersionProjectConfig
 import io.opengood.project.sync.model.VersionProvider
 import io.opengood.project.sync.model.VersionUri
 import io.opengood.project.sync.padSpaces
+import io.opengood.project.sync.toDelimiter
 import io.opengood.project.sync.toEnum
 import org.apache.commons.lang3.StringUtils
 import org.dom4j.DocumentHelper
@@ -64,18 +69,23 @@ open class SyncVersions : BaseTask() {
 
                             with(master.versions) {
                                 providers.forEach { provider ->
-                                    val data = getVersionChangeData(
-                                        master.versions,
-                                        project.versions,
-                                        provider,
-                                        currentLine,
-                                        prevLine,
-                                        priorLine
-                                    )
-                                    with(provider) {
-                                        if (files.contains(versionFile.name.toEnum())) {
-                                            currentLine = changeLine(data)
+                                    if (provider.enabled) {
+                                        val data = getVersionChangeData(
+                                            master.versions,
+                                            project.versions,
+                                            provider,
+                                            currentLine,
+                                            prevLine,
+                                            priorLine
+                                        )
+                                        with(provider) {
+                                            if (files.contains(versionFile.name.toEnum())) {
+                                                currentLine = changeLine(data)
+                                            }
                                         }
+                                    } else {
+                                        printInfo("Version provider '${provider.name}' disabled. Skipping...")
+                                        printBlankLine()
                                     }
                                 }
                             }
@@ -100,6 +110,7 @@ open class SyncVersions : BaseTask() {
                                 files.containsAny(MAVEN_POM, VERSIONS_PROPERTIES) -> {
                                     with(attributes) {
                                         group = findPatternMatch("group", read, getPatternLine("group", data))
+                                        groupPath = getGroupAsPath(group)
                                         name = findPatternMatch("name", read, getPatternLine("name", data))
                                         currentVersion =
                                             findPatternMatch("version", read, getPatternLine("version", data))
@@ -127,39 +138,69 @@ open class SyncVersions : BaseTask() {
         }
     }
 
-    private fun downloadVersionNumber(uri: String, pattern: String, data: VersionChangeData): String {
+    private fun downloadVersionNumber(uri: VersionUri, pattern: String, data: VersionChangeData): String {
         with(data) {
             with(provider) {
-                val (_, _, result) = uri.httpGet().responseString()
-                return when (result) {
-                    is Result.Success -> {
-                        when (type) {
-                            else -> {
-                                try {
-                                    val document = DocumentHelper.parseText(result.get())
-                                    document.selectNodes(pattern)
-                                        .filter { node ->
-                                            !isVersionNumberExcluded(node.text, exclusions, attributes)
-                                        }
-                                        .last { node -> isVersionNumberMatch(node.text, patterns) }
-                                        .text
-                                } catch (e: Exception) {
-                                    printWarning(
-                                        "Unable to parse version number from response for version provider '$type'",
-                                        e
-                                    )
+                with(uri) {
+                    val (_, _, result) = this.uri.httpGet().responseString()
+                    return when (result) {
+                        is Result.Success -> {
+                            when {
+                                source.containsAny(MAVEN_CENTRAL, NEXUS_PROXY_REPO) -> {
+                                    try {
+                                        val document = DocumentHelper.parseText(result.get())
+                                        document.selectNodes(pattern)
+                                            .filter { node ->
+                                                !isVersionNumberExcluded(node.text, exclusions, attributes)
+                                            }
+                                            .last { node -> isVersionNumberMatch(node.text, patterns) }
+                                            .text
+                                    } catch (e: Exception) {
+                                        val types = types.toDelimiter()
+                                        printWarning(
+                                            "Unable to parse version number from response for version provider(s): '$types'",
+                                            e
+                                        )
+                                        StringUtils.EMPTY
+                                    }
+                                }
+
+                                source.containsAny(NEXUS_HOSTED_REPO) -> {
+                                    try {
+                                        JsonPath.parse(result.get())
+                                            .read<List<Map<String, String>>>(pattern)
+                                            .map { it["version"] }
+                                            .filter { StringUtils.isNotBlank(it) }
+                                            .map { it.toString() }
+                                            .filter { version ->
+                                                !isVersionNumberExcluded(version, exclusions, attributes)
+                                            }
+                                            .first { version -> isSemanticVersionNumberMatch(version, patterns) }
+                                    } catch (e: Exception) {
+                                        val types = types.toDelimiter()
+                                        printWarning(
+                                            "Unable to parse version number from response for version provider(s): '$types'",
+                                            e
+                                        )
+                                        StringUtils.EMPTY
+                                    }
+                                }
+
+                                else -> {
+                                    printWarning("Version number parsing from response not supported for version provider(s) '$types'")
                                     StringUtils.EMPTY
                                 }
                             }
                         }
-                    }
 
-                    is Result.Failure -> {
-                        printWarning(
-                            "Unable to retrieve version number from request URI '$uri' for version provider '$type'",
-                            result.getException()
-                        )
-                        StringUtils.EMPTY
+                        is Result.Failure -> {
+                            val types = types.toDelimiter()
+                            printWarning(
+                                "Unable to retrieve version number from request URI '$uri' for version provider(s) '$types'",
+                                result.getException()
+                            )
+                            StringUtils.EMPTY
+                        }
                     }
                 }
             }
@@ -221,6 +262,20 @@ open class SyncVersions : BaseTask() {
         }
     }
 
+    private fun getGroupAsUriParameter(uri: VersionUri, data: VersionChangeData): String {
+        with(data) {
+            with(uri) {
+                with(attributes) {
+                    return when {
+                        source.containsAny(NEXUS_HOSTED_REPO) -> group
+
+                        else -> groupPath
+                    }
+                }
+            }
+        }
+    }
+
     private fun getPatternLine(key: String, data: VersionChangeData): String {
         with(data) {
             with(provider) {
@@ -241,19 +296,23 @@ open class SyncVersions : BaseTask() {
         }
     }
 
-    private fun getUri(uri: VersionUri, data: VersionChangeData): String {
+    private fun getUri(uri: VersionUri, data: VersionChangeData): VersionUri {
         return with(data) {
             with(provider) {
                 with(attributes) {
                     with(uri) {
                         when {
                             tools.containsAny(GRADLE, MAVEN) -> {
-                                val group = getGroupAsPath(group)
-                                val name = name
-                                this.uri.replace("{group}", group).replace("{name}", name)
+                                val group = getGroupAsUriParameter(uri, data)
+                                VersionUri(
+                                    uri = this.uri.replace("{group}", group).replace("{name}", name),
+                                    source = source,
+                                    pattern = pattern,
+                                    index = index
+                                )
                             }
 
-                            else -> StringUtils.EMPTY
+                            else -> VersionUri.EMPTY
                         }
                     }
                 }
@@ -294,6 +353,10 @@ open class SyncVersions : BaseTask() {
         }
         return StringUtils.EMPTY
     }
+
+    private fun isSemanticVersionNumberMatch(versionNumber: String, patterns: VersionConfigPatterns): Boolean =
+        patterns.semanticVersion.toRegex().matches(versionNumber) &&
+            !patterns.versionNumberIgnore.any { versionNumber.contains(it) }
 
     private fun isVersionNumberDev(versionNumber: String, patterns: VersionConfigPatterns): Boolean =
         patterns.devVersion.toRegex().matches(versionNumber)

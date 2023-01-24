@@ -37,8 +37,9 @@ versions:
     # -----------------------------------------------------------
     # Gradle Dependency
     # -----------------------------------------------------------
-    - name: gradle-dependency
-      type: Gradle Dependency
+    - name: Gradle Dependencies
+      types:
+        - Gradle Dependency
       tools:
         - Gradle
       files:
@@ -63,6 +64,7 @@ versions:
             - '='
       uris:
         - uri: https://repo.maven.apache.org/maven2/{group}/{name}/maven-metadata.xml
+          source: Maven Central
           pattern: '//metadata/versioning/versions/version'
           index: 0
       write:
@@ -70,8 +72,12 @@ versions:
           pattern: 'version.{group}..{name}={version}'
           index: 0
 
-    - name: maven-dependency
-      type: Maven Dependency
+    - name: Maven Dependencies and Plugins
+      enabled: false
+      types:
+        - Maven Dependency
+        - Maven Nexus Dependency
+        - Maven Plugin
       tools:
         - Maven
       files:
@@ -96,9 +102,18 @@ versions:
             - '<version>'
             - '</version>'
       uris:
-        - uri: https://repo.maven.apache.org/maven2/{group}/{name}/maven-metadata.xml
+        - uri: https://nexus.domain.com/repository/maven-central/{group}/{name}/maven-metadata.xml
+          source: Nexus Proxy Repo
           pattern: '//metadata/versioning/versions/version'
           index: 0
+        - uri: https://nexus.domain.com/service/rest/v1/search?repository=hosted&maven.groupId={group}&maven.artifactId={name}&maven.extension=jar&sort=version
+          source: Nexus Hosted Repo
+          pattern: '$.items'
+          index: 1
+        - uri: https://nexus.domain.com/service/rest/v1/search?repository=hosted&maven.groupId={group}&maven.artifactId={name}&maven.extension=pom&sort=version
+          source: Nexus Hosted Repo
+          pattern: '$.items'
+          index: 2
       write:
         - key: version
           pattern: '<version>{version}</version>'

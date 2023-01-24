@@ -145,7 +145,7 @@ open class BaseTask : DefaultTask() {
                         printBlankLine()
                     }
 
-                    printSuccess("Completed sync of $displayName for project: ${project.name}")
+                    printSuccess("Completed sync of $displayName for project: '${project.name}'")
                     printBlankLine()
                     printDivider()
                 }

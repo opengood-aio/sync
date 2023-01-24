@@ -6,7 +6,8 @@ import io.opengood.project.sync.enumeration.VersionProviderType
 
 data class VersionProvider(
     val name: String,
-    val type: VersionProviderType,
+    val enabled: Boolean = true,
+    val types: List<VersionProviderType>,
     val tools: List<BuildToolType>,
     val files: List<FileType>,
     val read: List<VersionPattern>,
@@ -16,7 +17,8 @@ data class VersionProvider(
     companion object {
         val EMPTY = VersionProvider(
             name = "",
-            type = VersionProviderType.UNKNOWN,
+            enabled = false,
+            types = emptyList(),
             tools = emptyList(),
             files = emptyList(),
             read = emptyList(),
