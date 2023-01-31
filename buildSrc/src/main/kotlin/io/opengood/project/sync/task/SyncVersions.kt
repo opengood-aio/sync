@@ -118,7 +118,7 @@ open class SyncVersions : BaseTask() {
                                         if (group.isNotBlank() && name.isNotBlank() && currentVersion.isNotBlank()) {
                                             if (!isVersionNumberDev(currentVersion, patterns)) {
                                                 newVersion = getVersionNumber(data)
-                                                if (currentVersion != newVersion) {
+                                                if (StringUtils.isNotBlank(newVersion) && currentVersion != newVersion) {
                                                     return formatLine(data)
                                                 }
                                             }
