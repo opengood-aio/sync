@@ -10,6 +10,7 @@ import io.opengood.project.sync.enumeration.BuildToolType.MAVEN
 import io.opengood.project.sync.enumeration.FileType
 import io.opengood.project.sync.enumeration.FileType.GRADLE_WRAPPER_PROPERTIES
 import io.opengood.project.sync.enumeration.FileType.MAVEN_POM
+import io.opengood.project.sync.enumeration.FileType.MAVEN_WRAPPER_PROPERTIES
 import io.opengood.project.sync.enumeration.FileType.UNKNOWN
 import io.opengood.project.sync.enumeration.FileType.VERSIONS_PROPERTIES
 import io.opengood.project.sync.enumeration.VersionSourceType.GRADLE_SERVICES
@@ -137,7 +138,8 @@ open class SyncVersions : BaseTask() {
                                     }
 
                                     files.containsAny(
-                                        GRADLE_WRAPPER_PROPERTIES
+                                        GRADLE_WRAPPER_PROPERTIES,
+                                        MAVEN_WRAPPER_PROPERTIES
                                     ) -> {
                                         currentVersion =
                                             findPatternMatch("version", read, getPatternLine("version", data))
