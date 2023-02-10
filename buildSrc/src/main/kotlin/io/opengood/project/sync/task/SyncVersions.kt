@@ -120,6 +120,7 @@ open class SyncVersions : BaseTask() {
                                         MAVEN_POM,
                                         VERSIONS_PROPERTIES
                                     ) -> {
+                                        type = findPatternMatch("type", read, getPatternLine("type", data))
                                         group = findPatternMatch("group", read, getPatternLine("group", data))
                                         groupPath = getGroupAsPath(group)
                                         name = findPatternMatch("name", read, getPatternLine("name", data))
@@ -277,6 +278,7 @@ open class SyncVersions : BaseTask() {
                                 var line = it.pattern
 
                                 val map = mapOf(
+                                    "type" to type,
                                     "group" to group,
                                     "name" to name,
                                     "version" to newVersion

@@ -27,7 +27,7 @@ versions:
 
   exclusions:
     - description: spring-boot-3
-      type: Gradle Dependency
+      type: Maven Dependency
       group: org.springframework.boot
       name: spring-boot-starter-parent
       versions:
