@@ -97,11 +97,14 @@ internal fun getLanguageType(dir: File): LanguageType =
         else -> LanguageType.UNKNOWN
     }
 
-internal fun getPathAsFile(path: String, vararg paths: String): File =
-    Path.of(path, *paths).toFile()
-
 internal fun <E : Enum<E>> getPathAsFile(dir: File, file: Enum<E>): File =
     Path.of(dir.absolutePath, file.toString()).toFile()
+
+internal fun getPathAsFile(path: String): File =
+    Path.of(path).toFile()
+
+internal fun getPathAsFile(path: String, vararg paths: String): File =
+    Path.of(path, *paths).toFile()
 
 internal fun getSyncMaster(dir: File): SyncMaster {
     val file = if (hasPath(dir, SyncFileType.MASTER_OVERRIDE)) {
