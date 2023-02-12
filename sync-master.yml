@@ -46,6 +46,11 @@ versions:
       files:
         - versions.properties
       read:
+        - key: key
+          pattern: '(.*\.)'
+          index: 0
+          trim:
+            - '.'
         - key: group
           pattern: '.*?(\.{2})'
           index: 0
@@ -85,7 +90,7 @@ versions:
           index: 3
       write:
         - key: version
-          pattern: 'version.{group}..{name}={version}'
+          pattern: '{key}.{group}..{name}={version}'
           index: 0
 
     # -----------------------------------------------------------
@@ -99,8 +104,18 @@ versions:
       files:
         - gradle/wrapper/gradle-wrapper.properties
       read:
+        - key: key
+          pattern: '(.*\=)'
+          index: 0
+          trim:
+            - '='
+        - key: uri
+          pattern: '(?=\=)(.+)(?=\/gradle-)'
+          index: 0
+          trim:
+            - '='
         - key: version
-          pattern: '(?=gradle\-)(.+)(?=\-bin.zip)'
+          pattern: '(?=gradle\-)(.+)(?=\-(.*).zip)'
           index: 0
           trim:
             - 'gradle-'
@@ -111,7 +126,7 @@ versions:
           index: 0
       write:
         - key: version
-          pattern: 'distributionUrl=https://services.gradle.org/distributions/gradle-{version}-all.zip'
+          pattern: '{key}={uri}/gradle-{version}-all.zip'
           index: 0
 
     # -----------------------------------------------------------

@@ -86,6 +86,9 @@ internal fun getBuildTool(dir: File): BuildToolType =
         else -> BuildToolType.UNKNOWN
     }
 
+internal fun getFileType(file: File): FileType =
+    FileType.values().first { file.name == getPathAsFile(it.toString()).name }
+
 internal fun getGroupAsPath(group: String): String =
     group.replace(".", "/")
 

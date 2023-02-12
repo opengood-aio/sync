@@ -1,21 +1,21 @@
 package io.opengood.project.sync.model
 
 data class VersionAttributes(
-    var type: String,
-    var group: String,
-    var groupPath: String,
+    var group: VersionGroupAttributes,
+    var id: String,
+    var key: String,
     var name: String,
-    var currentVersion: String,
-    var newVersion: String,
+    var uri: String,
+    var version: VersionNumberAttributes,
 ) {
     companion object {
         val EMPTY = VersionAttributes(
-            type = "",
-            group = "",
-            groupPath = "",
+            group = VersionGroupAttributes.EMPTY,
+            id = "",
+            key = "",
             name = "",
-            currentVersion = "",
-            newVersion = "",
+            uri = "",
+            version = VersionNumberAttributes.EMPTY,
         )
     }
 }
