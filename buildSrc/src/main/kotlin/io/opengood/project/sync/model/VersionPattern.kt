@@ -4,7 +4,7 @@ data class VersionPattern(
     val key: String,
     val pattern: String = "",
     val index: Int = 0,
-    var trim: List<String> = emptyList(),
+    var trim: MutableList<String> = mutableListOf(),
     val newLine: Boolean = false,
     val value: String = "",
 ) {
@@ -13,7 +13,7 @@ data class VersionPattern(
             key = "",
             pattern = "",
             index = -1,
-            trim = emptyList(),
+            trim = mutableListOf(),
             newLine = false,
             value = "",
         )

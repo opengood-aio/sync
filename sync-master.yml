@@ -93,6 +93,82 @@ versions:
           pattern: '{key}.{group}..{name}={version}'
           index: 0
 
+    - name: Gradle Dependencies
+      types:
+        - Gradle Dependency
+        - Gradle Nexus Dependency
+      tools:
+        - Gradle
+      files:
+        - build.gradle
+        - build.gradle.kts
+        - settings.gradle
+        - settings.gradle.kts
+      read:
+        - key: key
+          pattern: '^(\s*)(annotationProcessor|implementation|testAnnotationProcessor|testImplementation)\('
+          index: 0
+          trim:
+            - '('
+        - key: group
+          pattern: '(?=annotationProcessor|implementation|testAnnotationProcessor|testImplementation\()(.*?\:)'
+          index: 0
+          trim:
+            - 'annotationProcessor'
+            - 'implementation'
+            - 'testAnnotationProcessor'
+            - 'testImplementation'
+            - '("'
+            - '(\'''
+            - ':'
+        - key: name
+          pattern: '(?=annotationProcessor|implementation|testAnnotationProcessor|testImplementation\()(.*\:)'
+          index: 0
+          trim:
+            - 'annotationProcessor'
+            - 'implementation'
+            - 'testAnnotationProcessor'
+            - 'testImplementation'
+            - '("'
+            - '(\'''
+            - ':'
+        - key: version
+          pattern: '(?=annotationProcessor|implementation|testAnnotationProcessor|testImplementation\()(.*\")'
+          index: 0
+          trim:
+            - 'annotationProcessor'
+            - 'implementation'
+            - 'testAnnotationProcessor'
+            - 'testImplementation'
+            - '("'
+            - '(\'''
+            - ':'
+            - '"'
+      uris:
+        - uri: https://repo.maven.apache.org/maven2/{group}/{name}/maven-metadata.xml
+          source: Maven Central Repo
+          pattern: '//metadata/versioning/versions/version'
+          index: 0
+        - uri: https://nexus.domain.com/repository/maven-central/{group}/{name}/maven-metadata.xml
+          enabled: false
+          source: Nexus Proxy Repo
+          pattern: '//metadata/versioning/versions/version'
+          index: 1
+        - uri: https://nexus.domain.com/service/rest/v1/search?repository=hosted&maven.groupId={group}&maven.artifactId={name}&maven.extension=jar&sort=version
+          enabled: false
+          source: Nexus Hosted Repo
+          pattern: '$.items'
+          index: 2
+        - uri: https://nexus.domain.com/service/rest/v1/search?repository=hosted&maven.groupId={group}&maven.artifactId={name}&maven.extension=pom&sort=version
+          enabled: false
+          source: Nexus Hosted Repo
+          pattern: '$.items'
+          index: 3
+      write:
+        - key: version
+          pattern: '{key}("{group}:{name}:{version}")'
+          index: 0
+
     # -----------------------------------------------------------
     # Gradle Plugins
     # -----------------------------------------------------------

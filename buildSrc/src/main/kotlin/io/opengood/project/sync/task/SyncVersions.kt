@@ -7,9 +7,13 @@ import io.opengood.project.sync.containsAny
 import io.opengood.project.sync.countSpaces
 import io.opengood.project.sync.enumeration.BuildToolType.GRADLE
 import io.opengood.project.sync.enumeration.BuildToolType.MAVEN
+import io.opengood.project.sync.enumeration.FileType.BUILD_GRADLE_GROOVY
+import io.opengood.project.sync.enumeration.FileType.BUILD_GRADLE_KOTLIN
 import io.opengood.project.sync.enumeration.FileType.GRADLE_WRAPPER_PROPERTIES
 import io.opengood.project.sync.enumeration.FileType.MAVEN_POM
 import io.opengood.project.sync.enumeration.FileType.MAVEN_WRAPPER_PROPERTIES
+import io.opengood.project.sync.enumeration.FileType.SETTINGS_GRADLE_GROOVY
+import io.opengood.project.sync.enumeration.FileType.SETTINGS_GRADLE_KOTLIN
 import io.opengood.project.sync.enumeration.FileType.VERSIONS_PROPERTIES
 import io.opengood.project.sync.enumeration.VersionProviderType.GRADLE_DEPENDENCY
 import io.opengood.project.sync.enumeration.VersionProviderType.GRADLE_NEXUS_DEPENDENCY
@@ -95,7 +99,7 @@ open class SyncVersions : BaseTask() {
                                             priorLine
                                         )
                                         with(provider) {
-                                            if (files.contains(getFileType(versionFile))) {
+                                            if (files.contains(data.file)) {
                                                 currentLine = changeLine(data)
                                             }
                                         }
@@ -122,9 +126,27 @@ open class SyncVersions : BaseTask() {
                             tools.containsAny(GRADLE, MAVEN) -> {
                                 when {
                                     files.containsAny(
-                                        MAVEN_POM,
-                                        VERSIONS_PROPERTIES
+                                        BUILD_GRADLE_GROOVY,
+                                        BUILD_GRADLE_KOTLIN,
+                                        SETTINGS_GRADLE_GROOVY,
+                                        SETTINGS_GRADLE_KOTLIN
                                     ) -> {
+                                        with(group) {
+                                            with(version) {
+                                                if (group.isNotBlank() && name.isNotBlank() && current.isNotBlank() && current != "_") {
+                                                    if (!isVersionNumberDev(current, patterns)) {
+                                                        new = getVersionNumber(data)
+                                                        if (StringUtils.isNotBlank(new) && current != new) {
+                                                            return formatLine(data)
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        currentLine
+                                    }
+
+                                    files.containsAny(MAVEN_POM, VERSIONS_PROPERTIES) -> {
                                         with(group) {
                                             with(version) {
                                                 if (group.isNotBlank() && name.isNotBlank() && current.isNotBlank()) {
@@ -140,10 +162,7 @@ open class SyncVersions : BaseTask() {
                                         currentLine
                                     }
 
-                                    files.containsAny(
-                                        GRADLE_WRAPPER_PROPERTIES,
-                                        MAVEN_WRAPPER_PROPERTIES
-                                    ) -> {
+                                    files.containsAny(GRADLE_WRAPPER_PROPERTIES, MAVEN_WRAPPER_PROPERTIES) -> {
                                         with(version) {
                                             if (current.isNotBlank()) {
                                                 if (!isVersionNumberDev(current, patterns)) {
@@ -457,14 +476,50 @@ open class SyncVersions : BaseTask() {
                                     }
                                 }
 
+                                types.containsAny(GRADLE_DEPENDENCY, GRADLE_NEXUS_DEPENDENCY) &&
+                                    files.containsAny(data.file) &&
+                                    files.containsAny(
+                                        BUILD_GRADLE_GROOVY,
+                                        BUILD_GRADLE_KOTLIN,
+                                        SETTINGS_GRADLE_GROOVY,
+                                        SETTINGS_GRADLE_KOTLIN
+                                    ) -> {
+                                    key = findPatternMatch("key", read, getPatternLine("key", data))
+                                    if (key.isNotBlank()) {
+                                        group = VersionGroupAttributes.EMPTY
+                                        with(group) {
+                                            group = findPatternMatch("group", read, getPatternLine("group", data))
+                                            path = getGroupAsPath(group)
+
+                                            val namePattern = getPattern("name", read)
+                                            namePattern.trim.add(group)
+                                            name = findPatternMatch("name", namePattern, getPatternLine("name", data))
+
+                                            version = VersionNumberAttributes.EMPTY
+                                            with(version) {
+                                                val versionPattern = getPattern("version", read)
+                                                versionPattern.trim.addAll(listOf(group, name))
+                                                current =
+                                                    findPatternMatch("version", versionPattern, getPatternLine("version", data))
+                                            }
+                                        }
+                                    }
+                                }
+
                                 types.containsAny(GRADLE_PLUGIN) &&
                                     files.containsAny(data.file) &&
-                                    files.containsAny(VERSIONS_PROPERTIES) -> {
+                                    files.containsAny(
+                                        BUILD_GRADLE_GROOVY,
+                                        BUILD_GRADLE_KOTLIN,
+                                        SETTINGS_GRADLE_GROOVY,
+                                        SETTINGS_GRADLE_KOTLIN,
+                                        VERSIONS_PROPERTIES
+                                    ) -> {
                                     version = VersionNumberAttributes.EMPTY
                                     with(version) {
                                         key = findPatternMatch("key", read, getPatternLine("key", data))
                                         current = findPatternMatch("version", read, getPatternLine("version", data))
-                                        if (key.isNotBlank() && current.isNotBlank()) {
+                                        if (key.isNotBlank() && current.isNotBlank() && current != "_") {
                                             id = findPatternMatch("id", read, getPatternLine("id", data))
                                             uri = findPatternMatch("uri", read, getPatternLine("uri", data)) + id
                                             group = VersionGroupAttributes.EMPTY
@@ -473,7 +528,7 @@ open class SyncVersions : BaseTask() {
                                                 path = getGroupAsPath(group)
 
                                                 val namePattern = getPattern("name", read)
-                                                namePattern.trim = namePattern.trim + listOf(group)
+                                                namePattern.trim.add(group)
                                                 name = downloadAttribute(uri, namePattern)
                                             }
                                         }
