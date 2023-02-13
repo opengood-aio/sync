@@ -187,7 +187,7 @@ open class SyncVersions : BaseTask() {
 
                 is Result.Failure -> {
                     printWarning(
-                        "Unable to retrieve version pattern from request URI '$uri' for: '$key'",
+                        "Unable to retrieve attribute from request URI '$uri' for: '$key'",
                         result.getException()
                     )
                     StringUtils.EMPTY
