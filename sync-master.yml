@@ -47,7 +47,7 @@ versions:
         - versions.properties
       read:
         - key: key
-          pattern: '(.*\.)'
+          pattern: '^(version)\.'
           index: 0
           trim:
             - '.'
@@ -70,7 +70,7 @@ versions:
             - '='
       uris:
         - uri: https://repo.maven.apache.org/maven2/{group}/{name}/maven-metadata.xml
-          source: Maven Central
+          source: Maven Central Repo
           pattern: '//metadata/versioning/versions/version'
           index: 0
         - uri: https://nexus.domain.com/repository/maven-central/{group}/{name}/maven-metadata.xml
@@ -94,6 +94,57 @@ versions:
           index: 0
 
     # -----------------------------------------------------------
+    # Gradle Plugins
+    # -----------------------------------------------------------
+    - name: Gradle Plugin
+      types:
+        - Gradle Plugin
+      tools:
+        - Gradle
+      files:
+        - versions.properties
+      read:
+        - key: key
+          pattern: '^(plugin)\.'
+          index: 0
+          trim:
+            - '.'
+        - key: id
+          pattern: '.*?\='
+          index: 0
+          trim:
+            - 'plugin.'
+            - '='
+        - key: uri
+          value: 'https://plugins.gradle.org/plugin/'
+        - key: group
+          pattern: '(.*)(?=classpath\s\")(.*?\:)'
+          index: 0
+          trim:
+            - 'classpath "'
+            - ':'
+        - key: name
+          pattern: '(.*)(?=classpath\s\")(.*\:)'
+          index: 0
+          trim:
+            - 'classpath "'
+            - ':'
+        - key: version
+          pattern: '=\s*(.*)'
+          index: 0
+          trim:
+            - '='
+      uris:
+        - uri: https://plugins.gradle.org/m2/{group}/{name}/maven-metadata.xml
+          source: Gradle Plugins Repo
+          pattern: '//metadata/versioning/versions/version'
+          index: 0
+      write:
+        - key: version
+          pattern: '{key}.{id}={version}'
+          index: 0
+
+    # -----------------------------------------------------------
     # Gradle Wrapper
     # -----------------------------------------------------------
     - name: Gradle Wrapper
@@ -105,7 +156,7 @@ versions:
         - gradle/wrapper/gradle-wrapper.properties
       read:
         - key: key
-          pattern: '(.*\=)'
+          pattern: '^(distributionUrl)\='
           index: 0
           trim:
             - '='
@@ -163,7 +214,7 @@ versions:
             - '</version>'
       uris:
         - uri: https://repo.maven.apache.org/maven2/{group}/{name}/maven-metadata.xml
-          source: Maven Central
+          source: Maven Central Repo
           pattern: '//metadata/versioning/versions/version'
           index: 0
         - uri: https://nexus.domain.com/repository/maven-central/{group}/{name}/maven-metadata.xml
@@ -204,7 +255,7 @@ versions:
             - 'maven-wrapper-'
       uris:
         - uri: https://repo.maven.apache.org/maven2/org/apache/maven/wrapper/maven-wrapper/maven-metadata.xml
-          source: Maven Central
+          source: Maven Central Repo
           pattern: '//metadata/versioning/versions/version'
           index: 0
       write:
@@ -227,7 +278,7 @@ versions:
             - 'apache-maven-'
       uris:
         - uri: https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/maven-metadata.xml
-          source: Maven Central
+          source: Maven Central Repo
           pattern: '//metadata/versioning/versions/version'
           index: 0
       write:

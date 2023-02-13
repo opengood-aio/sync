@@ -11,8 +11,16 @@ import io.opengood.project.sync.enumeration.FileType.GRADLE_WRAPPER_PROPERTIES
 import io.opengood.project.sync.enumeration.FileType.MAVEN_POM
 import io.opengood.project.sync.enumeration.FileType.MAVEN_WRAPPER_PROPERTIES
 import io.opengood.project.sync.enumeration.FileType.VERSIONS_PROPERTIES
+import io.opengood.project.sync.enumeration.VersionProviderType.GRADLE_DEPENDENCY
+import io.opengood.project.sync.enumeration.VersionProviderType.GRADLE_NEXUS_DEPENDENCY
+import io.opengood.project.sync.enumeration.VersionProviderType.GRADLE_PLUGIN
+import io.opengood.project.sync.enumeration.VersionProviderType.GRADLE_WRAPPER
+import io.opengood.project.sync.enumeration.VersionProviderType.MAVEN_DEPENDENCY
+import io.opengood.project.sync.enumeration.VersionProviderType.MAVEN_NEXUS_DEPENDENCY
+import io.opengood.project.sync.enumeration.VersionProviderType.MAVEN_WRAPPER
+import io.opengood.project.sync.enumeration.VersionSourceType.GRADLE_PLUGINS_REPO
 import io.opengood.project.sync.enumeration.VersionSourceType.GRADLE_SERVICES
-import io.opengood.project.sync.enumeration.VersionSourceType.MAVEN_CENTRAL
+import io.opengood.project.sync.enumeration.VersionSourceType.MAVEN_CENTRAL_REPO
 import io.opengood.project.sync.enumeration.VersionSourceType.NEXUS_HOSTED_REPO
 import io.opengood.project.sync.enumeration.VersionSourceType.NEXUS_PROXY_REPO
 import io.opengood.project.sync.firstOrDefault
@@ -91,9 +99,6 @@ open class SyncVersions : BaseTask() {
                                                 currentLine = changeLine(data)
                                             }
                                         }
-                                    } else {
-                                        printInfo("Version provider '${provider.name}' disabled. Skipping...")
-                                        printBlankLine()
                                     }
                                 }
                             }
@@ -164,6 +169,33 @@ open class SyncVersions : BaseTask() {
         }
     }
 
+    private fun downloadAttribute(uri: String, pattern: VersionPattern): String {
+        with(pattern) {
+            val (_, _, result) = uri.httpGet().responseString()
+            return when (result) {
+                is Result.Success -> {
+                    try {
+                        findPatternMatch(key, this, result.get())
+                    } catch (e: Exception) {
+                        printWarning(
+                            "Unable to parse attribute from response for: '$key'",
+                            e
+                        )
+                        StringUtils.EMPTY
+                    }
+                }
+
+                is Result.Failure -> {
+                    printWarning(
+                        "Unable to retrieve version pattern from request URI '$uri' for: '$key'",
+                        result.getException()
+                    )
+                    StringUtils.EMPTY
+                }
+            }
+        }
+    }
+
     private fun downloadVersionNumber(uri: VersionUri, pattern: String, data: VersionChangeData): String {
         with(data) {
             with(provider) {
@@ -185,7 +217,7 @@ open class SyncVersions : BaseTask() {
                                     }
                                 }
 
-                                source.containsAny(MAVEN_CENTRAL, NEXUS_PROXY_REPO) -> {
+                                source.containsAny(GRADLE_PLUGINS_REPO, MAVEN_CENTRAL_REPO, NEXUS_PROXY_REPO) -> {
                                     try {
                                         val document = DocumentHelper.parseText(result.get())
                                         document.selectNodes(pattern)
@@ -250,23 +282,33 @@ open class SyncVersions : BaseTask() {
     }
 
     private fun findPatternMatch(key: String, patterns: List<VersionPattern>, value: String): String {
-        val pattern = patterns.firstOrDefault({ it.key == key }, VersionPattern.EMPTY)
-        if (pattern != VersionPattern.EMPTY) {
+        val pattern = getPattern(key, patterns)
+        if (pattern != VersionPattern.EMPTY && value.isNotBlank()) {
             with(pattern) {
-                val matcher = Pattern.compile(this.pattern).matcher(value)
-                if (matcher.find()) {
-                    var match = matcher.group(index)
-                    if (trim.isNotEmpty()) {
-                        trim.forEach {
-                            match = match.replace(it, StringUtils.EMPTY)
+                if (this.value.isBlank()) {
+                    val matcher = Pattern.compile(this.pattern).matcher(value)
+                    if (matcher.find()) {
+                        var match = matcher.group(index)
+                        if (trim.isNotEmpty()) {
+                            trim.forEach {
+                                match = match.replace(it, StringUtils.EMPTY)
+                            }
                         }
+                        if (match.isNotBlank()) {
+                            match = match.trim()
+                        }
+                        return match
                     }
-                    return match
+                } else {
+                    return this.value
                 }
             }
         }
         return StringUtils.EMPTY
     }
+
+    private fun findPatternMatch(key: String, pattern: VersionPattern, value: String) =
+        findPatternMatch(key, listOf(pattern), value)
 
     private fun formatLine(data: VersionChangeData): String {
         with(data) {
@@ -312,6 +354,9 @@ open class SyncVersions : BaseTask() {
             }
         }
     }
+
+    private fun getPattern(key: String, patterns: List<VersionPattern>) =
+        patterns.firstOrDefault({ it.key == key }, VersionPattern.EMPTY)
 
     private fun getPatternLine(key: String, data: VersionChangeData): String {
         with(data) {
@@ -389,34 +434,62 @@ open class SyncVersions : BaseTask() {
                     when {
                         tools.containsAny(GRADLE, MAVEN) -> {
                             when {
-                                files.containsAny(
-                                    MAVEN_POM,
-                                    VERSIONS_PROPERTIES
-                                ) -> {
-                                    group = VersionGroupAttributes.EMPTY
-                                    with(group) {
-                                        group = findPatternMatch("group", read, getPatternLine("group", data))
-                                        path = getGroupAsPath(group)
-                                    }
-                                    id = findPatternMatch("id", read, getPatternLine("id", data))
-                                    key = findPatternMatch("key", read, getPatternLine("key", data))
-                                    name = findPatternMatch("name", read, getPatternLine("name", data))
-                                    uri = findPatternMatch("uri", read, getPatternLine("uri", data))
+                                types.containsAny(
+                                    GRADLE_DEPENDENCY,
+                                    GRADLE_NEXUS_DEPENDENCY,
+                                    MAVEN_DEPENDENCY,
+                                    MAVEN_NEXUS_DEPENDENCY
+                                ) &&
+                                    files.containsAny(data.file) &&
+                                    files.containsAny(MAVEN_POM, VERSIONS_PROPERTIES) -> {
                                     version = VersionNumberAttributes.EMPTY
                                     with(version) {
                                         current = findPatternMatch("version", read, getPatternLine("version", data))
+                                        if (current.isNotBlank()) {
+                                            key = findPatternMatch("key", read, getPatternLine("key", data))
+                                            group = VersionGroupAttributes.EMPTY
+                                            with(group) {
+                                                group = findPatternMatch("group", read, getPatternLine("group", data))
+                                                path = getGroupAsPath(group)
+                                            }
+                                            name = findPatternMatch("name", read, getPatternLine("name", data))
+                                        }
                                     }
                                 }
 
-                                files.containsAny(
-                                    GRADLE_WRAPPER_PROPERTIES,
-                                    MAVEN_WRAPPER_PROPERTIES
-                                ) -> {
-                                    key = findPatternMatch("key", read, getPatternLine("key", data))
-                                    uri = findPatternMatch("uri", read, getPatternLine("uri", data))
+                                types.containsAny(GRADLE_PLUGIN) &&
+                                    files.containsAny(data.file) &&
+                                    files.containsAny(VERSIONS_PROPERTIES) -> {
+                                    version = VersionNumberAttributes.EMPTY
+                                    with(version) {
+                                        key = findPatternMatch("key", read, getPatternLine("key", data))
+                                        current = findPatternMatch("version", read, getPatternLine("version", data))
+                                        if (key.isNotBlank() && current.isNotBlank()) {
+                                            id = findPatternMatch("id", read, getPatternLine("id", data))
+                                            uri = findPatternMatch("uri", read, getPatternLine("uri", data)) + id
+                                            group = VersionGroupAttributes.EMPTY
+                                            with(group) {
+                                                group = downloadAttribute(uri, getPattern("group", read))
+                                                path = getGroupAsPath(group)
+
+                                                val namePattern = getPattern("name", read)
+                                                namePattern.trim = namePattern.trim + listOf(group)
+                                                name = downloadAttribute(uri, namePattern)
+                                            }
+                                        }
+                                    }
+                                }
+
+                                types.containsAny(GRADLE_WRAPPER, MAVEN_WRAPPER) &&
+                                    files.containsAny(data.file) &&
+                                    files.containsAny(GRADLE_WRAPPER_PROPERTIES, MAVEN_WRAPPER_PROPERTIES) -> {
                                     version = VersionNumberAttributes.EMPTY
                                     with(version) {
                                         current = findPatternMatch("version", read, getPatternLine("version", data))
+                                        if (current.isNotBlank()) {
+                                            key = findPatternMatch("key", read, getPatternLine("key", data))
+                                            uri = findPatternMatch("uri", read, getPatternLine("uri", data))
+                                        }
                                     }
                                 }
 
