@@ -24,6 +24,7 @@ versions:
         - beta
         - rc
         - dev
+      version-placeholder: '_'
 
   exclusions:
     - description: spring-boot-3
@@ -218,6 +219,58 @@ versions:
       write:
         - key: version
           pattern: '{key}.{id}={version}'
+          index: 0
+
+    - name: Gradle Plugin
+      types:
+        - Gradle Plugin
+      tools:
+        - Gradle
+      files:
+        - build.gradle
+        - build.gradle.kts
+        - settings.gradle
+        - settings.gradle.kts
+      read:
+        - key: key
+          pattern: '^(\s*)(id)\('
+          index: 0
+          trim:
+            - '('
+        - key: id
+          pattern: '(\(\")(.*?\"\))'
+          index: 0
+          trim:
+            - '('
+            - '"'
+            - ')'
+        - key: uri
+          value: 'https://plugins.gradle.org/plugin/'
+        - key: group
+          pattern: '(.*)(?=classpath\s\")(.*?\:)'
+          index: 0
+          trim:
+            - 'classpath "'
+            - ':'
+        - key: name
+          pattern: '(.*)(?=classpath\s\")(.*\:)'
+          index: 0
+          trim:
+            - 'classpath "'
+            - ':'
+        - key: version
+          pattern: '(\s)(\")(.*?\")'
+          index: 0
+          trim:
+            - '"'
+      uris:
+        - uri: https://plugins.gradle.org/m2/{group}/{name}/maven-metadata.xml
+          source: Gradle Plugins Repo
+          pattern: '//metadata/versioning/versions/version'
+          index: 0
+      write:
+        - key: version
+          pattern: '{key}("{id}") version "{version}"'
           index: 0
 
     # -----------------------------------------------------------

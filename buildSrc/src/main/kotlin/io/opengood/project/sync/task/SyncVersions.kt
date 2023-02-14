@@ -133,7 +133,9 @@ open class SyncVersions : BaseTask() {
                                     ) -> {
                                         with(group) {
                                             with(version) {
-                                                if (group.isNotBlank() && name.isNotBlank() && current.isNotBlank() && current != "_") {
+                                                if (key.isNotBlank() && group.isNotBlank() && name.isNotBlank() &&
+                                                    current.isNotBlank() && current != patterns.versionPlaceholder
+                                                ) {
                                                     if (!isVersionNumberDev(current, patterns)) {
                                                         new = getVersionNumber(data)
                                                         if (StringUtils.isNotBlank(new) && current != new) {
@@ -519,7 +521,7 @@ open class SyncVersions : BaseTask() {
                                     with(version) {
                                         key = findPatternMatch("key", read, getPatternLine("key", data))
                                         current = findPatternMatch("version", read, getPatternLine("version", data))
-                                        if (key.isNotBlank() && current.isNotBlank() && current != "_") {
+                                        if (key.isNotBlank() && current.isNotBlank() && current != patterns.versionPlaceholder) {
                                             id = findPatternMatch("id", read, getPatternLine("id", data))
                                             uri = findPatternMatch("uri", read, getPatternLine("uri", data)) + id
                                             group = VersionGroupAttributes.EMPTY
