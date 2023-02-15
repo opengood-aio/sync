@@ -137,9 +137,16 @@ open class SyncVersions : BaseTask() {
                                                     current.isNotBlank() && current != patterns.versionPlaceholder
                                                 ) {
                                                     if (!isVersionNumberDev(current, patterns)) {
+                                                        printInfo("Determining if Gradle dependency/plugin '$group:$name' needs to be updated in file '$file'")
                                                         new = getVersionNumber(data)
                                                         if (StringUtils.isNotBlank(new) && current != new) {
-                                                            return formatLine(data)
+                                                            printProgress("Updating Gradle dependency/plugin '$group:$name' from version '$current' to '$new'...")
+                                                            val formattedLine = formatLine(data)
+                                                            printDone()
+                                                            return formattedLine
+                                                        } else {
+                                                            printSuccess("No updates required")
+                                                            printBlankLine()
                                                         }
                                                     }
                                                 }
@@ -151,11 +158,18 @@ open class SyncVersions : BaseTask() {
                                     files.containsAny(MAVEN_POM, VERSIONS_PROPERTIES) -> {
                                         with(group) {
                                             with(version) {
-                                                if (group.isNotBlank() && name.isNotBlank() && current.isNotBlank()) {
+                                                if (key.isNotBlank() && group.isNotBlank() && name.isNotBlank() && current.isNotBlank()) {
                                                     if (!isVersionNumberDev(current, patterns)) {
+                                                        printInfo("Determining if Gradle/Maven dependency/plugin '$group:$name' needs to be updated in file '$file'")
                                                         new = getVersionNumber(data)
                                                         if (StringUtils.isNotBlank(new) && current != new) {
-                                                            return formatLine(data)
+                                                            printProgress("Updating Gradle/Maven dependency/plugin '$group:$name' from version '$current' to '$new'...")
+                                                            val formattedLine = formatLine(data)
+                                                            printDone()
+                                                            return formattedLine
+                                                        } else {
+                                                            printSuccess("No updates required")
+                                                            printBlankLine()
                                                         }
                                                     }
                                                 }
@@ -168,9 +182,16 @@ open class SyncVersions : BaseTask() {
                                         with(version) {
                                             if (current.isNotBlank()) {
                                                 if (!isVersionNumberDev(current, patterns)) {
+                                                    printInfo("Determining if Gradle/Maven wrapper needs to be updated in file '$file'")
                                                     new = getVersionNumber(data)
                                                     if (StringUtils.isNotBlank(new) && current != new) {
-                                                        return formatLine(data)
+                                                        printProgress("Updating Gradle/Maven wrapper from version '$current' to '$new'...")
+                                                        val formattedLine = formatLine(data)
+                                                        printDone()
+                                                        return formattedLine
+                                                    } else {
+                                                        printSuccess("No updates required")
+                                                        printBlankLine()
                                                     }
                                                 }
                                             }
@@ -221,6 +242,7 @@ open class SyncVersions : BaseTask() {
         with(data) {
             with(provider) {
                 with(uri) {
+                    printProgress("Attempting to download new version number from '${uri.uri}...")
                     val (_, _, result) = this.uri.httpGet().responseString()
                     return when (result) {
                         is Result.Success -> {
@@ -291,7 +313,7 @@ open class SyncVersions : BaseTask() {
                         is Result.Failure -> {
                             val types = types.toDelimiter()
                             printWarning(
-                                "Unable to retrieve version number from request URI '$uri' for version provider(s) '$types'",
+                                "Unable to retrieve version number from request URI '${uri.uri}' for version provider(s) '$types'",
                                 result.getException()
                             )
                             StringUtils.EMPTY
@@ -463,12 +485,10 @@ open class SyncVersions : BaseTask() {
                                 ) &&
                                     files.containsAny(data.file) &&
                                     files.containsAny(MAVEN_POM, VERSIONS_PROPERTIES) -> {
-                                    version = VersionNumberAttributes.EMPTY
                                     with(version) {
+                                        key = findPatternMatch("key", read, getPatternLine("key", data))
                                         current = findPatternMatch("version", read, getPatternLine("version", data))
-                                        if (current.isNotBlank()) {
-                                            key = findPatternMatch("key", read, getPatternLine("key", data))
-                                            group = VersionGroupAttributes.EMPTY
+                                        if (key.isNotBlank() && current.isNotBlank()) {
                                             with(group) {
                                                 group = findPatternMatch("group", read, getPatternLine("group", data))
                                                 path = getGroupAsPath(group)
@@ -488,7 +508,6 @@ open class SyncVersions : BaseTask() {
                                     ) -> {
                                     key = findPatternMatch("key", read, getPatternLine("key", data))
                                     if (key.isNotBlank()) {
-                                        group = VersionGroupAttributes.EMPTY
                                         with(group) {
                                             group = findPatternMatch("group", read, getPatternLine("group", data))
                                             path = getGroupAsPath(group)
@@ -497,7 +516,6 @@ open class SyncVersions : BaseTask() {
                                             namePattern.trim.add(group)
                                             name = findPatternMatch("name", namePattern, getPatternLine("name", data))
 
-                                            version = VersionNumberAttributes.EMPTY
                                             with(version) {
                                                 val versionPattern = getPattern("version", read)
                                                 versionPattern.trim.addAll(listOf(group, name))
@@ -517,14 +535,12 @@ open class SyncVersions : BaseTask() {
                                         SETTINGS_GRADLE_KOTLIN,
                                         VERSIONS_PROPERTIES
                                     ) -> {
-                                    version = VersionNumberAttributes.EMPTY
                                     with(version) {
                                         key = findPatternMatch("key", read, getPatternLine("key", data))
                                         current = findPatternMatch("version", read, getPatternLine("version", data))
                                         if (key.isNotBlank() && current.isNotBlank() && current != patterns.versionPlaceholder) {
                                             id = findPatternMatch("id", read, getPatternLine("id", data))
                                             uri = findPatternMatch("uri", read, getPatternLine("uri", data)) + id
-                                            group = VersionGroupAttributes.EMPTY
                                             with(group) {
                                                 group = downloadAttribute(uri, getPattern("group", read))
                                                 path = getGroupAsPath(group)
@@ -540,7 +556,6 @@ open class SyncVersions : BaseTask() {
                                 types.containsAny(GRADLE_WRAPPER, MAVEN_WRAPPER) &&
                                     files.containsAny(data.file) &&
                                     files.containsAny(GRADLE_WRAPPER_PROPERTIES, MAVEN_WRAPPER_PROPERTIES) -> {
-                                    version = VersionNumberAttributes.EMPTY
                                     with(version) {
                                         current = findPatternMatch("version", read, getPatternLine("version", data))
                                         if (current.isNotBlank()) {

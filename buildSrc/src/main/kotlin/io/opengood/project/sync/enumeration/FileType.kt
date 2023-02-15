@@ -8,7 +8,6 @@ import com.fasterxml.jackson.annotation.JsonValue
 enum class FileType(@JsonValue private val value: String) {
     BUILD_GRADLE_GROOVY("build.gradle"),
     BUILD_GRADLE_KOTLIN("build.gradle.kts"),
-    DOCKERFILE("Dockerfile"),
     GRADLE_WRAPPER_PROPERTIES("gradle/wrapper/gradle-wrapper.properties"),
     MAVEN_POM("pom.xml"),
     MAVEN_WRAPPER_PROPERTIES(".mvn/wrapper/maven-wrapper.properties"),
