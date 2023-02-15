@@ -3,7 +3,7 @@ package io.opengood.project.sync.model
 import java.io.File
 
 data class SyncProject(
-    val version: String,
+    val version: String = "2.0",
     val config: ConfigInfo = ConfigInfo(),
     val git: GitInfo = GitInfo(),
     val ci: CiProjectConfig = CiProjectConfig.EMPTY,

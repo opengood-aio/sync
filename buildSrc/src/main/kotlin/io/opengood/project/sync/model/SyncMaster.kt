@@ -3,9 +3,9 @@ package io.opengood.project.sync.model
 import java.io.File
 
 data class SyncMaster(
-    val version: String,
+    val version: String = "2.0",
     val config: ConfigInfo = ConfigInfo(),
-    val ci: CiMasterConfig,
+    val ci: CiMasterConfig = CiMasterConfig(),
     val versions: VersionMasterConfig,
 ) {
     lateinit var dir: File
