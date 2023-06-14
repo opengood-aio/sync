@@ -26,14 +26,6 @@ versions:
         - dev
       version-placeholder: '_'
 
-  exclusions:
-    - description: spring-boot-3
-      type: Maven Dependency
-      group: org.springframework.boot
-      name: spring-boot-starter-parent
-      versions:
-        - 3.*
-
   providers:
     # -----------------------------------------------------------
     # Gradle Dependencies
@@ -74,21 +66,25 @@ versions:
           source: Maven Central Repo
           pattern: '//metadata/versioning/versions/version'
           index: 0
+        - uri: https://plugins.gradle.org/m2/{group}/{name}/maven-metadata.xml
+          source: Gradle Plugins Repo
+          pattern: '//metadata/versioning/versions/version'
+          index: 1
         - uri: https://nexus.domain.com/repository/maven-central/{group}/{name}/maven-metadata.xml
           enabled: false
           source: Nexus Proxy Repo
           pattern: '//metadata/versioning/versions/version'
-          index: 1
+          index: 2
         - uri: https://nexus.domain.com/service/rest/v1/search?repository=hosted&maven.groupId={group}&maven.artifactId={name}&maven.extension=jar&sort=version
           enabled: false
           source: Nexus Hosted Repo
           pattern: '$.items'
-          index: 2
+          index: 3
         - uri: https://nexus.domain.com/service/rest/v1/search?repository=hosted&maven.groupId={group}&maven.artifactId={name}&maven.extension=pom&sort=version
           enabled: false
           source: Nexus Hosted Repo
           pattern: '$.items'
-          index: 3
+          index: 4
       write:
         - key: version
           pattern: '{key}.{group}..{name}={version}'
@@ -154,17 +150,17 @@ versions:
           enabled: false
           source: Nexus Proxy Repo
           pattern: '//metadata/versioning/versions/version'
-          index: 1
+          index: 2
         - uri: https://nexus.domain.com/service/rest/v1/search?repository=hosted&maven.groupId={group}&maven.artifactId={name}&maven.extension=jar&sort=version
           enabled: false
           source: Nexus Hosted Repo
           pattern: '$.items'
-          index: 2
+          index: 3
         - uri: https://nexus.domain.com/service/rest/v1/search?repository=hosted&maven.groupId={group}&maven.artifactId={name}&maven.extension=pom&sort=version
           enabled: false
           source: Nexus Hosted Repo
           pattern: '$.items'
-          index: 3
+          index: 4
       write:
         - key: version
           pattern: '{key}("{group}:{name}:{version}")'

@@ -37,10 +37,8 @@ import io.opengood.project.sync.model.VersionAttributes
 import io.opengood.project.sync.model.VersionChangeData
 import io.opengood.project.sync.model.VersionConfigPatterns
 import io.opengood.project.sync.model.VersionExclusion
-import io.opengood.project.sync.model.VersionGroupAttributes
 import io.opengood.project.sync.model.VersionLineData
 import io.opengood.project.sync.model.VersionMasterConfig
-import io.opengood.project.sync.model.VersionNumberAttributes
 import io.opengood.project.sync.model.VersionPattern
 import io.opengood.project.sync.model.VersionProjectConfig
 import io.opengood.project.sync.model.VersionProvider
@@ -74,7 +72,7 @@ open class SyncVersions : BaseTask() {
             taskName = TASK_NAME,
             displayName = TASK_DISPLAY_NAME,
             workspacePath = workspacePath,
-            projectPath = projectPath
+            projectPath = projectPath,
         ) { _, master: SyncMaster, project: SyncProject, _ ->
             val versionFiles = getVersionFiles(project.dir)
             versionFiles.forEach { versionFile ->
@@ -96,7 +94,7 @@ open class SyncVersions : BaseTask() {
                                             provider,
                                             currentLine,
                                             prevLine,
-                                            priorLine
+                                            priorLine,
                                         )
                                         with(provider) {
                                             if (files.contains(data.file)) {
@@ -111,7 +109,7 @@ open class SyncVersions : BaseTask() {
                             prevLine = currentLine
                             currentLine
                         }
-                        .toList()
+                        .toList(),
                 )
             }
         }
@@ -129,7 +127,7 @@ open class SyncVersions : BaseTask() {
                                         BUILD_GRADLE_GROOVY,
                                         BUILD_GRADLE_KOTLIN,
                                         SETTINGS_GRADLE_GROOVY,
-                                        SETTINGS_GRADLE_KOTLIN
+                                        SETTINGS_GRADLE_KOTLIN,
                                     ) -> {
                                         with(group) {
                                             with(version) {
@@ -221,7 +219,7 @@ open class SyncVersions : BaseTask() {
                     } catch (e: Exception) {
                         printWarning(
                             "Unable to parse attribute from response for: '$key'",
-                            e
+                            e,
                         )
                         StringUtils.EMPTY
                     }
@@ -230,7 +228,7 @@ open class SyncVersions : BaseTask() {
                 is Result.Failure -> {
                     printWarning(
                         "Unable to retrieve attribute from request URI '$uri' for: '$key'",
-                        result.getException()
+                        result.getException(),
                     )
                     StringUtils.EMPTY
                 }
@@ -254,7 +252,7 @@ open class SyncVersions : BaseTask() {
                                         val types = types.toDelimiter()
                                         printWarning(
                                             "Unable to parse version number from response for version provider(s): '$types'",
-                                            e
+                                            e,
                                         )
                                         StringUtils.EMPTY
                                     }
@@ -273,7 +271,7 @@ open class SyncVersions : BaseTask() {
                                         val types = types.toDelimiter()
                                         printWarning(
                                             "Unable to parse version number from response for version provider(s): '$types'",
-                                            e
+                                            e,
                                         )
                                         StringUtils.EMPTY
                                     }
@@ -291,13 +289,13 @@ open class SyncVersions : BaseTask() {
                                             }
                                             .firstOrDefault(
                                                 { version -> isSemanticVersionNumberMatch(version, patterns) },
-                                                StringUtils.EMPTY
+                                                StringUtils.EMPTY,
                                             )
                                     } catch (e: Exception) {
                                         val types = types.toDelimiter()
                                         printWarning(
                                             "Unable to parse version number from response for version provider(s): '$types'",
-                                            e
+                                            e,
                                         )
                                         StringUtils.EMPTY
                                     }
@@ -314,7 +312,7 @@ open class SyncVersions : BaseTask() {
                             val types = types.toDelimiter()
                             printWarning(
                                 "Unable to retrieve version number from request URI '${uri.uri}' for version provider(s) '$types'",
-                                result.getException()
+                                result.getException(),
                             )
                             StringUtils.EMPTY
                         }
@@ -371,7 +369,7 @@ open class SyncVersions : BaseTask() {
                                             "key" to key,
                                             "name" to name,
                                             "uri" to uri,
-                                            "version" to new
+                                            "version" to new,
                                         )
                                         map.forEach {
                                             if (line.contains("{${it.key}}")) {
@@ -438,7 +436,7 @@ open class SyncVersions : BaseTask() {
                                     uri = this.uri.replace("{group}", group).replace("{name}", name),
                                     source = source,
                                     pattern = pattern,
-                                    index = index
+                                    index = index,
                                 )
                             }
 
@@ -455,7 +453,7 @@ open class SyncVersions : BaseTask() {
         master: VersionMasterConfig,
         project: VersionProjectConfig,
         provider: VersionProvider,
-        vararg lines: String
+        vararg lines: String,
     ): VersionChangeData {
         val data = VersionChangeData(
             file = getFileType(file),
@@ -463,12 +461,12 @@ open class SyncVersions : BaseTask() {
                 currentLine = lines[0],
                 spaces = countSpaces(lines[0]),
                 prevLine = lines[1],
-                priorLine = lines[2]
+                priorLine = lines[2],
             ),
             attributes = VersionAttributes.EMPTY,
             exclusions = master.exclusions + project.exclusions,
             patterns = master.config.patterns,
-            provider = provider
+            provider = provider,
         )
 
         with(data) {
@@ -481,7 +479,7 @@ open class SyncVersions : BaseTask() {
                                     GRADLE_DEPENDENCY,
                                     GRADLE_NEXUS_DEPENDENCY,
                                     MAVEN_DEPENDENCY,
-                                    MAVEN_NEXUS_DEPENDENCY
+                                    MAVEN_NEXUS_DEPENDENCY,
                                 ) &&
                                     files.containsAny(data.file) &&
                                     files.containsAny(MAVEN_POM, VERSIONS_PROPERTIES) -> {
@@ -504,7 +502,7 @@ open class SyncVersions : BaseTask() {
                                         BUILD_GRADLE_GROOVY,
                                         BUILD_GRADLE_KOTLIN,
                                         SETTINGS_GRADLE_GROOVY,
-                                        SETTINGS_GRADLE_KOTLIN
+                                        SETTINGS_GRADLE_KOTLIN,
                                     ) -> {
                                     key = findPatternMatch("key", read, getPatternLine("key", data))
                                     if (key.isNotBlank()) {
@@ -533,7 +531,7 @@ open class SyncVersions : BaseTask() {
                                         BUILD_GRADLE_KOTLIN,
                                         SETTINGS_GRADLE_GROOVY,
                                         SETTINGS_GRADLE_KOTLIN,
-                                        VERSIONS_PROPERTIES
+                                        VERSIONS_PROPERTIES,
                                     ) -> {
                                     with(version) {
                                         key = findPatternMatch("key", read, getPatternLine("key", data))
@@ -578,14 +576,19 @@ open class SyncVersions : BaseTask() {
     private fun getVersionNumber(data: VersionChangeData): String {
         with(data) {
             with(provider) {
+                val versionNumbers = mutableListOf<String>()
                 uris.filter { it.enabled }
                     .forEach { uri ->
                         val downloadUri = getUri(uri, data)
                         val versionNumber = downloadVersionNumber(downloadUri, uri.pattern, data)
                         if (versionNumber.isNotBlank()) {
-                            return versionNumber
+                            versionNumbers.add(versionNumber)
                         }
                     }
+                if (versionNumbers.isNotEmpty()) {
+                    versionNumbers.sortDescending()
+                    return versionNumbers.first()
+                }
             }
         }
         return StringUtils.EMPTY
@@ -601,7 +604,7 @@ open class SyncVersions : BaseTask() {
     private fun isVersionNumberExcluded(
         versionNumber: String,
         exclusions: List<VersionExclusion>,
-        attributes: VersionAttributes
+        attributes: VersionAttributes,
     ): Boolean {
         return if (exclusions.isEmpty()) {
             false
