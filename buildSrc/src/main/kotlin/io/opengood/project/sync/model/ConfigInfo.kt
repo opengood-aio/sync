@@ -1,6 +1,6 @@
 package io.opengood.project.sync.model
 
-data class  ConfigInfo(
+data class ConfigInfo(
     val enabled: Boolean = true,
 ) {
     companion object {

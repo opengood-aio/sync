@@ -1,6 +1,8 @@
 package io.opengood.project.sync.task
 
 import com.lordcodes.turtle.shellRun
+import io.opengood.project.sync.model.GitConfig
+import io.opengood.project.sync.model.SyncMaster
 import io.opengood.project.sync.model.SyncProject
 import org.apache.commons.lang3.StringUtils
 import org.gradle.api.tasks.Input
@@ -14,9 +16,6 @@ open class SyncGitCommit : BaseTask() {
     @Input
     lateinit var projectPath: String
 
-    @Input
-    lateinit var commitMessage: String
-
     init {
         group = "sync"
         description = "Performs Git commit and push containing sync changes for each project"
@@ -28,12 +27,21 @@ open class SyncGitCommit : BaseTask() {
             taskName = TASK_NAME,
             displayName = TASK_DISPLAY_NAME,
             workspacePath = workspacePath,
-            projectPath = projectPath
-        ) { _, _, project: SyncProject, _ ->
+            projectPath = projectPath,
+        ) { _, master: SyncMaster, project: SyncProject, _ ->
+            val commitMessage = if (project.versions.config.git != GitConfig.EMPTY &&
+                project.versions.config.git.commitMessage.isNotBlank()) {
+                project.versions.config.git.commitMessage
+            } else {
+                master.versions.config.git.commitMessage.ifBlank {
+                    GitConfig.DEFAULT_COMMIT_MESSAGE
+                }
+            }
+
             with(project) {
                 shellRun(dir) {
                     with(project.git) {
-                        printInfo("Determining project changes for '${name}' in local Git repo '${dir}'...")
+                        printInfo("Determining project changes for '$name' in local Git repo '$dir'...")
                         val status = git.status()
 
                         if (status.isNotBlank()) {

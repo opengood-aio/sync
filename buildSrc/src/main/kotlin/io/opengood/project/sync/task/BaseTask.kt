@@ -27,7 +27,7 @@ open class BaseTask : DefaultTask() {
         displayName: String,
         workspacePath: String,
         projectPath: String,
-        task: (context: SyncContext, master: SyncMaster, project: SyncProject, buildInfo: BuildInfo) -> Unit
+        task: (context: SyncContext, master: SyncMaster, project: SyncProject, buildInfo: BuildInfo) -> Unit,
     ) {
         printHeader(taskName)
         printExecute(displayName)
@@ -128,7 +128,7 @@ open class BaseTask : DefaultTask() {
                                 printInfo("Language: '$language'")
                                 printInfo("Tool: '$tool'")
                                 printInfo("Files:")
-                                if (!files.isEmpty()) {
+                                if (files.isNotEmpty()) {
                                     files.forEach { file ->
                                         printInfo("* $file")
                                     }
@@ -182,7 +182,7 @@ open class BaseTask : DefaultTask() {
             true,
             "***************************************************",
             "$name task",
-            "***************************************************"
+            "***************************************************",
         )
 
     protected fun printInfo(message: String) =

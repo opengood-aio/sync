@@ -20,7 +20,7 @@ data class VersionConfigPatterns(
             semanticVersion = "",
             versionNumber = "",
             versionNumberIgnore = emptyList(),
-            versionPlaceholder = ""
+            versionPlaceholder = "",
         )
     }
 }

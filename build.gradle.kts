@@ -65,13 +65,12 @@ with(tasks) {
 
     val workspace = project.projectDir.parentFile.absolutePath
     val proj = getProperty("selectedProject")
-    val commitMsg = getProperty("commitMessage")
 
     register<Sync>(Sync.TASK_NAME) {
         dependsOn(
             SyncCiTemplates.TASK_NAME,
             SyncVersions.TASK_NAME,
-            SyncGitCommit.TASK_NAME
+            SyncGitCommit.TASK_NAME,
         )
     }
 
@@ -88,7 +87,6 @@ with(tasks) {
     register<SyncGitCommit>(SyncGitCommit.TASK_NAME) {
         workspacePath = workspace
         projectPath = proj
-        commitMessage = commitMsg
         mustRunAfter(SyncVersions.TASK_NAME)
     }
 }

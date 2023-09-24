@@ -15,6 +15,9 @@ ci:
 
 versions:
   config:
+    git:
+      commit-message: Perform automatic project sync changes
+
     patterns:
       dev-version: '.*\-SNAPSHOT'
       semantic-version: '(\d+\.)?(\d+\.)?(\*|\d+)'
