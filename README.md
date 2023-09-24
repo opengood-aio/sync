@@ -93,11 +93,11 @@ versions:
 
 #### Git Task(s) Properties
 
-| Name            | Description                          | Required | Default                                  |
-|-----------------|--------------------------------------|----------|------------------------------------------|
-| `remote`        | Git remote name                      | No       | `origin`                                 |
-| `branch`        | Git branch name                      | No       | `main`                                   |
-| `commitMessage` | Git commit message for project syncs | No       | `Perform automatic project sync changes` |
+| Name             | Description                          | Required | Default                                  |
+|------------------|--------------------------------------|----------|------------------------------------------|
+| `remote`         | Git remote name                      | No       | `origin`                                 |
+| `branch`         | Git branch name                      | No       | `main`                                   |
+| `commit-message` | Git commit message for project syncs | No       | `Perform automatic project sync changes` |
 
 #### CI Task(s) Properties
 
