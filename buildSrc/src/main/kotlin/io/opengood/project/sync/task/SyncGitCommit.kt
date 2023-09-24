@@ -1,7 +1,7 @@
 package io.opengood.project.sync.task
 
 import com.lordcodes.turtle.shellRun
-import io.opengood.project.sync.model.GitConfig
+import io.opengood.project.sync.model.GitInfo
 import io.opengood.project.sync.model.SyncMaster
 import io.opengood.project.sync.model.SyncProject
 import org.apache.commons.lang3.StringUtils
@@ -29,12 +29,11 @@ open class SyncGitCommit : BaseTask() {
             workspacePath = workspacePath,
             projectPath = projectPath,
         ) { _, master: SyncMaster, project: SyncProject, _ ->
-            val commitMessage = if (project.versions.config.git != GitConfig.EMPTY &&
-                project.versions.config.git.commitMessage.isNotBlank()) {
-                project.versions.config.git.commitMessage
+            val commitMessage = if (project.git != GitInfo.EMPTY && project.git.commitMessage.isNotBlank()) {
+                project.git.commitMessage
             } else {
-                master.versions.config.git.commitMessage.ifBlank {
-                    GitConfig.DEFAULT_COMMIT_MESSAGE
+                master.git.commitMessage.ifBlank {
+                    GitInfo.DEFAULT_COMMIT_MESSAGE
                 }
             }
 
