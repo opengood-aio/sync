@@ -1,12 +1,12 @@
 package io.opengood.project.sync.model
 
 data class VersionConfig(
-    val git: GitConfig,
+    val git: GitInfo,
     val patterns: VersionConfigPatterns,
 ) {
     companion object {
         val EMPTY = VersionConfig(
-            git = GitConfig.EMPTY,
+            git = GitInfo.EMPTY,
             patterns = VersionConfigPatterns.EMPTY,
         )
     }
