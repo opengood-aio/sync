@@ -5,16 +5,19 @@ import com.github.kittinunf.result.Result
 import com.jayway.jsonpath.JsonPath
 import io.opengood.project.sync.containsAny
 import io.opengood.project.sync.countSpaces
+import io.opengood.project.sync.enumeration.BuildToolType.DOCKER
 import io.opengood.project.sync.enumeration.BuildToolType.GRADLE
 import io.opengood.project.sync.enumeration.BuildToolType.MAVEN
 import io.opengood.project.sync.enumeration.FileType.BUILD_GRADLE_GROOVY
 import io.opengood.project.sync.enumeration.FileType.BUILD_GRADLE_KOTLIN
+import io.opengood.project.sync.enumeration.FileType.DOCKER_FILE
 import io.opengood.project.sync.enumeration.FileType.GRADLE_WRAPPER_PROPERTIES
 import io.opengood.project.sync.enumeration.FileType.MAVEN_POM
 import io.opengood.project.sync.enumeration.FileType.MAVEN_WRAPPER_PROPERTIES
 import io.opengood.project.sync.enumeration.FileType.SETTINGS_GRADLE_GROOVY
 import io.opengood.project.sync.enumeration.FileType.SETTINGS_GRADLE_KOTLIN
 import io.opengood.project.sync.enumeration.FileType.VERSIONS_PROPERTIES
+import io.opengood.project.sync.enumeration.VersionProviderType.DOCKER_IMAGE
 import io.opengood.project.sync.enumeration.VersionProviderType.GRADLE_DEPENDENCY
 import io.opengood.project.sync.enumeration.VersionProviderType.GRADLE_NEXUS_DEPENDENCY
 import io.opengood.project.sync.enumeration.VersionProviderType.GRADLE_PLUGIN
@@ -121,8 +124,33 @@ open class SyncVersions : BaseTask() {
                 with(line) {
                     with(attributes) {
                         return when {
-                            tools.containsAny(GRADLE, MAVEN) -> {
+                            tools.containsAny(DOCKER, GRADLE, MAVEN) -> {
                                 when {
+                                    files.containsAny(
+                                        DOCKER_FILE
+                                    ) -> {
+                                        with(group) {
+                                            with(version) {
+                                                if (key.isNotBlank() && group.isNotBlank() && name.isNotBlank() &&
+                                                    current.isNotBlank()
+                                                ) {
+                                                    printInfo("Determining if Docker image '$group:$name' needs to be updated in file '$file'")
+                                                    new = getVersionNumber(data)
+                                                    if (StringUtils.isNotBlank(new) && current != new) {
+                                                        printProgress("Updating Docker image '$group:$name' from version '$current' to '$new'...")
+                                                        val formattedLine = formatLine(data)
+                                                        printDone()
+                                                        return formattedLine
+                                                    } else {
+                                                        printSuccess("No updates required")
+                                                        printBlankLine()
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        currentLine
+                                    }
+
                                     files.containsAny(
                                         BUILD_GRADLE_GROOVY,
                                         BUILD_GRADLE_KOTLIN,
@@ -425,7 +453,7 @@ open class SyncVersions : BaseTask() {
                 with(attributes) {
                     with(uri) {
                         when {
-                            tools.containsAny(GRADLE, MAVEN) -> {
+                            tools.containsAny(DOCKER, GRADLE, MAVEN) -> {
                                 val group = with(group) {
                                     when {
                                         source.containsAny(NEXUS_HOSTED_REPO) -> group
@@ -473,16 +501,17 @@ open class SyncVersions : BaseTask() {
             with(provider) {
                 with(attributes) {
                     when {
-                        tools.containsAny(GRADLE, MAVEN) -> {
+                        tools.containsAny(DOCKER, GRADLE, MAVEN) -> {
                             when {
                                 types.containsAny(
+                                    DOCKER_IMAGE,
                                     GRADLE_DEPENDENCY,
                                     GRADLE_NEXUS_DEPENDENCY,
                                     MAVEN_DEPENDENCY,
                                     MAVEN_NEXUS_DEPENDENCY,
                                 ) &&
                                     files.containsAny(data.file) &&
-                                    files.containsAny(MAVEN_POM, VERSIONS_PROPERTIES) -> {
+                                    files.containsAny(DOCKER_FILE, MAVEN_POM, VERSIONS_PROPERTIES) -> {
                                     with(version) {
                                         key = findPatternMatch("key", read, getPatternLine("key", data))
                                         current = findPatternMatch("version", read, getPatternLine("version", data))

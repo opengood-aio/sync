@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonValue
 
 @JsonFormat(shape = Shape.OBJECT)
 enum class BuildToolType(@JsonValue private val value: String) {
+    DOCKER("Docker"),
     GRADLE("Gradle"),
     MAVEN("Maven"),
     UNKNOWN("Unknown"),

@@ -31,6 +31,45 @@ versions:
 
   providers:
     # -----------------------------------------------------------
+    # Docker Images
+    # -----------------------------------------------------------
+    - name: Chubb Docker Images
+      types:
+        - Docker Image
+      tools:
+        - Docker
+      files:
+        - Dockerfile
+      read:
+        - key: key
+          pattern: '^([^\/]+)'
+          index: 0
+          trim:
+            - 'FROM '
+        - key: group
+          pattern: '^([^\/]+)'
+          index: 0
+          trim:
+            - 'FROM '
+        - key: name
+          pattern: '(?<=\/)(.*?)(?=\/)(.*)(?=\:)'
+          index: 0
+        - key: version
+          pattern: '([^:]+)$'
+          index: 0
+          trim:
+            - ':'
+      uris:
+        - uri: https://nexus.domain.com/service/rest/v1/search?repository=docker&name={name}&sort=version
+          source: Nexus Hosted Repo
+          pattern: '$.items'
+          index: 0
+      write:
+        - key: version
+          pattern: 'FROM {group}/{name}:{version}'
+          index: 0
+
+    # -----------------------------------------------------------
     # Gradle Dependencies
     # -----------------------------------------------------------
     - name: Gradle Dependencies

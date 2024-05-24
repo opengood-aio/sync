@@ -37,7 +37,7 @@ invoked with a Gradle wrapper embedded in the sync tool's project.
         * `/project-1`
         * `/project-2`
         * `/project-3`
-          * `/sub-project-3a`
+          * `/sub-project`
 
 ## Setup
 
@@ -128,6 +128,7 @@ versions:
 
 ###### Supported Version Exclusion Types
 
+* `Docker Image`
 * `Gradle Dependency`
 * `Gradle Nexus Dependency`
 * `Gradle Plugin`

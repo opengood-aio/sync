@@ -7,6 +7,7 @@ import io.opengood.project.sync.enumeration.BuildToolType
 import io.opengood.project.sync.enumeration.FileType
 import io.opengood.project.sync.enumeration.FileType.BUILD_GRADLE_GROOVY
 import io.opengood.project.sync.enumeration.FileType.BUILD_GRADLE_KOTLIN
+import io.opengood.project.sync.enumeration.FileType.DOCKER_FILE
 import io.opengood.project.sync.enumeration.FileType.GRADLE_WRAPPER_PROPERTIES
 import io.opengood.project.sync.enumeration.FileType.MAVEN_POM
 import io.opengood.project.sync.enumeration.FileType.MAVEN_WRAPPER_PROPERTIES
@@ -51,6 +52,11 @@ internal fun getBuildFiles(dir: File): List<FileType> {
     val files = mutableListOf<FileType>()
     val buildTool = getBuildTool(dir)
     return when (buildTool) {
+        BuildToolType.DOCKER -> {
+            if (hasPath(dir, DOCKER_FILE)) files.add(DOCKER_FILE)
+            files
+        }
+
         BuildToolType.GRADLE -> {
             if (hasPath(dir, BUILD_GRADLE_GROOVY)) files.add(BUILD_GRADLE_GROOVY)
             if (hasPath(dir, BUILD_GRADLE_KOTLIN)) files.add(BUILD_GRADLE_KOTLIN)
@@ -145,6 +151,7 @@ internal fun getVersionFiles(dir: File): List<File> {
     val files = mutableListOf<File>()
     if (hasPath(dir, BUILD_GRADLE_GROOVY)) files.add(getPathAsFile(dir, BUILD_GRADLE_GROOVY))
     if (hasPath(dir, BUILD_GRADLE_KOTLIN)) files.add(getPathAsFile(dir, BUILD_GRADLE_KOTLIN))
+    if (hasPath(dir, DOCKER_FILE)) files.add(getPathAsFile(dir, DOCKER_FILE))
     if (hasPath(dir, GRADLE_WRAPPER_PROPERTIES)) files.add(getPathAsFile(dir, GRADLE_WRAPPER_PROPERTIES))
     if (hasPath(dir, MAVEN_POM)) files.add(getPathAsFile(dir, MAVEN_POM))
     if (hasPath(dir, MAVEN_WRAPPER_PROPERTIES)) files.add(getPathAsFile(dir, MAVEN_WRAPPER_PROPERTIES))
