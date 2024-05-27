@@ -39,6 +39,12 @@ open class SyncGitCommit : BaseTask() {
 
             with(project) {
                 shellRun(dir) {
+                    val branch = if (project.git.branch.isNotBlank()) {
+                        project.git.branch
+                    } else {
+                        git.currentBranch()
+                    }
+
                     with(project.git) {
                         printInfo("Determining project changes for '$name' in local Git repo '$dir'...")
                         val status = git.status()

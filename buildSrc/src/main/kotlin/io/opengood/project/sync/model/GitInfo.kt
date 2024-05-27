@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 
 data class GitInfo(
     val remote: String = "origin",
-    val branch: String = "main",
+    val branch: String = "",
     @JsonProperty("commit-message")
     val commitMessage: String = "",
 ) {

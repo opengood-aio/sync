@@ -96,7 +96,7 @@ versions:
 | Name             | Description                          | Required | Default                                  |
 |------------------|--------------------------------------|----------|------------------------------------------|
 | `remote`         | Git remote name                      | No       | `origin`                                 |
-| `branch`         | Git branch name                      | No       | `main`                                   |
+| `branch`         | Git branch name                      | No       | `current branch`                         |
 | `commit-message` | Git commit message for project syncs | No       | `Perform automatic project sync changes` |
 
 #### CI Task(s) Properties
