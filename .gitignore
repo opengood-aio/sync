@@ -59,13 +59,16 @@ http-client.private.env.json
 # Native Build Files
 null
 
-### Cert Stores ###
+# Caches
+.cache-proxy/
+
+# Cert Stores
 cert-stores/
 
-### Log Files ###
+# Log Files
 logs/
 
-### Scratch Files ###
+# Scratch Files
 scratch*.http
 
 ########################################################################################################################
