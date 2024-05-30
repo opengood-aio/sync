@@ -12,6 +12,9 @@
 
 ### Kotlin and Java ###
 
+# Kotlin
+.kotlin/
+
 # IntelliJ IDEA
 .idea
 *.iml
