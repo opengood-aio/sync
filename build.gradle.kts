@@ -2,6 +2,7 @@ import io.opengood.project.sync.task.Sync
 import io.opengood.project.sync.task.SyncCiTemplates
 import io.opengood.project.sync.task.SyncGitCommit
 import io.opengood.project.sync.task.SyncVersions
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -13,8 +14,8 @@ group = "io.opengood.project"
 description = "Sync Tool"
 
 val kotlinVersion = getKotlinPluginVersion()
-val javaVersion = JavaVersion.VERSION_17
-val jvmTargetVersion = "17"
+val javaVersion = JavaVersion.VERSION_21
+val jvmTargetVersion = JvmTarget.JVM_21
 
 java.apply {
     sourceCompatibility = javaVersion
@@ -56,9 +57,9 @@ fun getProperty(name: String) =
 with(tasks) {
     withType<Wrapper> {
         withType<KotlinCompile> {
-            kotlinOptions {
+            compilerOptions {
                 freeCompilerArgs = listOf("-Xjsr305=strict")
-                jvmTarget = jvmTargetVersion
+                jvmTarget.set(jvmTargetVersion)
             }
         }
     }
