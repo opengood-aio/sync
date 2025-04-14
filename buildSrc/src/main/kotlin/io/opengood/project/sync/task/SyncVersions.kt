@@ -173,12 +173,14 @@ open class SyncVersions : BaseTask() {
                                                 ) {
                                                     if (!isVersionNumberDev(current, patterns)) {
                                                         printInfo(
-                                                            "Determining if Gradle dependency/plugin '$group:$name' needs to be updated in file '$file'",
+                                                            "Determining if Gradle dependency/plugin '$group:$name' " +
+                                                                "needs to be updated in file '$file'",
                                                         )
                                                         new = getVersionNumber(data)
                                                         if (StringUtils.isNotBlank(new) && current != new) {
                                                             printProgress(
-                                                                "Updating Gradle dependency/plugin '$group:$name' from version '$current' to '$new'...",
+                                                                "Updating Gradle dependency/plugin '$group:$name' from " +
+                                                                    "version '$current' to '$new'...",
                                                             )
                                                             val formattedLine = formatLine(data)
                                                             printDone()
@@ -200,12 +202,14 @@ open class SyncVersions : BaseTask() {
                                                 if (key.isNotBlank() && group.isNotBlank() && name.isNotBlank() && current.isNotBlank()) {
                                                     if (!isVersionNumberDev(current, patterns)) {
                                                         printInfo(
-                                                            "Determining if Gradle/Maven dependency/plugin '$group:$name' needs to be updated in file '$file'",
+                                                            "Determining if Gradle/Maven dependency/plugin '$group:$name' " +
+                                                                "needs to be updated in file '$file'",
                                                         )
                                                         new = getVersionNumber(data)
                                                         if (StringUtils.isNotBlank(new) && current != new) {
                                                             printProgress(
-                                                                "Updating Gradle/Maven dependency/plugin '$group:$name' from version '$current' to '$new'...",
+                                                                "Updating Gradle/Maven dependency/plugin '$group:$name' from " +
+                                                                    "version '$current' to '$new'...",
                                                             )
                                                             val formattedLine = formatLine(data)
                                                             printDone()
