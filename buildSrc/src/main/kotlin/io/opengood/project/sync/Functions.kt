@@ -183,14 +183,6 @@ internal fun isGradle(dir: File): Boolean =
         hasPath(dir, SETTINGS_GRADLE_GROOVY) ||
         hasPath(dir, SETTINGS_GRADLE_KOTLIN)
 
-internal fun isGradleGroovyDsl(dir: File): Boolean =
-    hasPath(dir, BUILD_GRADLE_GROOVY) ||
-        hasPath(dir, SETTINGS_GRADLE_GROOVY)
-
-internal fun isGradleKotlinDsl(dir: File): Boolean =
-    hasPath(dir, BUILD_GRADLE_KOTLIN) ||
-        hasPath(dir, SETTINGS_GRADLE_KOTLIN)
-
 internal fun isGroovy(dir: File): Boolean = hasPath(dir, SrcDirType.GROOVY.values)
 
 internal fun isJava(dir: File): Boolean = hasPath(dir, SrcDirType.JAVA.values)
