@@ -50,23 +50,33 @@ open class SyncGitCommit : BaseTask() {
                         if (status.isNotBlank()) {
                             printInfo("Git status:")
                             printInfo(status)
+                            printBlankLine()
 
                             printProgress("Checking out '$branch' branch on local Git repo...")
                             git.checkout(branch)
+                            printBlankLine()
 
                             printProgress("Committing all changes to '$branch' branch in local Git repo...")
                             git.commitAllChanges(commitMessage)
                             printDone()
+                            printBlankLine()
 
-                            printProgress("Pulling potential changes from remote '$remote' Git repo...")
-                            git.pull(remote, branch)
-                            printDone()
+                            printProgress("Pulling potential changes from remote '$remote' in branch '$branch' Git repo...")
+                            try {
+                                git.pull(remote, branch)
+                                printDone()
+                            } catch (e: Exception) {
+                                printWarning("Unable to pull changes from remote '$remote' in branch '$branch' Git repo", e)
+                            }
+                            printBlankLine()
 
-                            printProgress("Pushing changes to remote '$remote' Git repo...")
+                            printProgress("Pushing changes to remote '$remote' in branch '$branch' Git repo...")
                             git.push(remote, branch)
                             printDone()
+                            printBlankLine()
                         } else {
                             printInfo("No project changes found in local Git repo. Skipping.")
+                            printBlankLine()
                         }
                     }
                     StringUtils.EMPTY
