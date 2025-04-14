@@ -45,12 +45,12 @@ open class SyncGitCommit : BaseTask() {
 
                     with(project.git) {
                         printInfo("Determining project changes for '$name' in local Git repo '$dir'...")
+                        printBlankLine()
                         val status = git.status()
 
                         if (status.isNotBlank()) {
                             printInfo("Git status:")
                             printInfo(status)
-                            printBlankLine()
 
                             printProgress("Checking out '$branch' branch on local Git repo...")
                             git.checkout(branch)
@@ -59,7 +59,6 @@ open class SyncGitCommit : BaseTask() {
                             printProgress("Committing all changes to '$branch' branch in local Git repo...")
                             git.commitAllChanges(commitMessage)
                             printDone()
-                            printBlankLine()
 
                             printProgress("Pulling potential changes from remote '$remote' in branch '$branch' Git repo...")
                             try {
@@ -67,13 +66,12 @@ open class SyncGitCommit : BaseTask() {
                                 printDone()
                             } catch (e: Exception) {
                                 printWarning("Unable to pull changes from remote '$remote' in branch '$branch' Git repo", e)
+                                printBlankLine()
                             }
-                            printBlankLine()
 
                             printProgress("Pushing changes to remote '$remote' in branch '$branch' Git repo...")
                             git.push(remote, branch)
                             printDone()
-                            printBlankLine()
                         } else {
                             printInfo("No project changes found in local Git repo. Skipping.")
                             printBlankLine()
