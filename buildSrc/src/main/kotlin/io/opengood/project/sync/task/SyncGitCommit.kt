@@ -51,6 +51,7 @@ open class SyncGitCommit : BaseTask() {
                         if (status.isNotBlank()) {
                             printInfo("Git status:")
                             printInfo(status)
+                            printDone()
 
                             printProgress("Checking out '$branch' branch on local Git repo...")
                             git.checkout(branch)
