@@ -54,7 +54,7 @@ open class SyncGitCommit : BaseTask() {
 
                             printProgress("Checking out '$branch' branch on local Git repo...")
                             git.checkout(branch)
-                            printBlankLine()
+                            printDone()
 
                             printProgress("Committing all changes to '$branch' branch in local Git repo...")
                             git.commitAllChanges(commitMessage)
