@@ -13,12 +13,13 @@ data class SyncMaster(
     lateinit var file: File
 
     companion object {
-        val EMPTY = SyncMaster(
-            version = "",
-            config = ConfigInfo.EMPTY,
-            git = GitInfo.EMPTY,
-            ci = CiMasterConfig.EMPTY,
-            versions = VersionMasterConfig.EMPTY,
-        )
+        val EMPTY =
+            SyncMaster(
+                version = "",
+                config = ConfigInfo.EMPTY,
+                git = GitInfo.EMPTY,
+                ci = CiMasterConfig.EMPTY,
+                versions = VersionMasterConfig.EMPTY,
+            )
     }
 }

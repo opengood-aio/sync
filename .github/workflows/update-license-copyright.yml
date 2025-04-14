@@ -1,0 +1,12 @@
+name: update-license-copyright
+on:
+  workflow_dispatch:
+  schedule:
+    # Automatically run every Sunday at midnight
+    - cron: '0 0 * * 0'
+
+jobs:
+  update-license-copyright:
+    uses: opengood-aio/central-workflows/.github/workflows/workflow-update-license-copyright.yml@main
+    secrets:
+      workflow-token: ${{ secrets.WORKFLOW_TOKEN }}

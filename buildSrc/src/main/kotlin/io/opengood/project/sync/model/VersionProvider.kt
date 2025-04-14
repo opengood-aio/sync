@@ -15,15 +15,16 @@ data class VersionProvider(
     val write: List<VersionPattern>,
 ) {
     companion object {
-        val EMPTY = VersionProvider(
-            name = "",
-            enabled = false,
-            types = emptyList(),
-            tools = emptyList(),
-            files = emptyList(),
-            read = emptyList(),
-            uris = emptyList(),
-            write = emptyList(),
-        )
+        val EMPTY =
+            VersionProvider(
+                name = "",
+                enabled = false,
+                types = emptyList(),
+                tools = emptyList(),
+                files = emptyList(),
+                read = emptyList(),
+                uris = emptyList(),
+                write = emptyList(),
+            )
     }
 }

@@ -31,7 +31,10 @@ internal fun countSpaces(line: String): Int {
     return if (matcher.find()) matcher.group(0).length else 0
 }
 
-internal fun createContext(workspacePath: String, syncProjectPath: String): SyncContext {
+internal fun createContext(
+    workspacePath: String,
+    syncProjectPath: String,
+): SyncContext {
     val workspaceDir = getPathAsFile(workspacePath)
     if (!workspaceDir.exists()) {
         throw FileNotFoundException("Workspace directory cannot be found: $workspaceDir")
@@ -44,7 +47,7 @@ internal fun createContext(workspacePath: String, syncProjectPath: String): Sync
 
     return SyncContext(
         workspaceDir = workspaceDir,
-        syncProjectDir = syncProjectDir
+        syncProjectDir = syncProjectDir,
     )
 }
 
@@ -81,7 +84,7 @@ internal fun getBuildInfo(dir: File): BuildInfo =
     BuildInfo(
         language = getLanguageType(dir),
         tool = getBuildTool(dir),
-        files = getBuildFiles(dir)
+        files = getBuildFiles(dir),
     )
 
 internal fun getBuildTool(dir: File): BuildToolType =
@@ -91,11 +94,9 @@ internal fun getBuildTool(dir: File): BuildToolType =
         else -> BuildToolType.UNKNOWN
     }
 
-internal fun getFileType(file: File): FileType =
-    FileType.values().first { file.name == getPathAsFile(it.toString()).name }
+internal fun getFileType(file: File): FileType = FileType.values().first { file.name == getPathAsFile(it.toString()).name }
 
-internal fun getGroupAsPath(group: String): String =
-    group.replace(".", "/")
+internal fun getGroupAsPath(group: String): String = group.replace(".", "/")
 
 internal fun getLanguageType(dir: File): LanguageType =
     when {
@@ -105,21 +106,25 @@ internal fun getLanguageType(dir: File): LanguageType =
         else -> LanguageType.UNKNOWN
     }
 
-internal fun <E : Enum<E>> getPathAsFile(dir: File, file: Enum<E>): File =
-    Path.of(dir.absolutePath, file.toString()).toFile()
+internal fun <E : Enum<E>> getPathAsFile(
+    dir: File,
+    file: Enum<E>,
+): File = Path.of(dir.absolutePath, file.toString()).toFile()
 
-internal fun getPathAsFile(path: String): File =
-    Path.of(path).toFile()
+internal fun getPathAsFile(path: String): File = Path.of(path).toFile()
 
-internal fun getPathAsFile(path: String, vararg paths: String): File =
-    Path.of(path, *paths).toFile()
+internal fun getPathAsFile(
+    path: String,
+    vararg paths: String,
+): File = Path.of(path, *paths).toFile()
 
 internal fun getSyncMaster(dir: File): SyncMaster {
-    val file = if (hasPath(dir, SyncFileType.MASTER_OVERRIDE)) {
-        getPathAsFile(dir, SyncFileType.MASTER_OVERRIDE)
-    } else {
-        getPathAsFile(dir, SyncFileType.MASTER)
-    }
+    val file =
+        if (hasPath(dir, SyncFileType.MASTER_OVERRIDE)) {
+            getPathAsFile(dir, SyncFileType.MASTER_OVERRIDE)
+        } else {
+            getPathAsFile(dir, SyncFileType.MASTER)
+        }
     if (!file.exists()) {
         throw FileNotFoundException("Sync master file cannot be found: $file")
     }
@@ -136,7 +141,8 @@ internal inline fun <reified T : Any> getSyncObject(file: File): T {
 }
 
 internal fun getSyncProjects(dir: File): List<SyncProject> =
-    dir.walkTopDown()
+    dir
+        .walkTopDown()
         .filter { it.name == SyncFileType.PROJECT.toString() }
         .toList()
         .map { file ->
@@ -161,11 +167,15 @@ internal fun getVersionFiles(dir: File): List<File> {
     return files
 }
 
-internal fun <E : Enum<E>> hasPath(dir: File, file: Enum<E>): Boolean =
-    getPathAsFile(dir.absolutePath, file.toString()).exists()
+internal fun <E : Enum<E>> hasPath(
+    dir: File,
+    file: Enum<E>,
+): Boolean = getPathAsFile(dir.absolutePath, file.toString()).exists()
 
-internal fun hasPath(dir: File, files: List<String>): Boolean =
-    files.any { getPathAsFile(dir.absolutePath, it).exists() }
+internal fun hasPath(
+    dir: File,
+    files: List<String>,
+): Boolean = files.any { getPathAsFile(dir.absolutePath, it).exists() }
 
 internal fun isGradle(dir: File): Boolean =
     hasPath(dir, BUILD_GRADLE_GROOVY) ||
@@ -173,25 +183,15 @@ internal fun isGradle(dir: File): Boolean =
         hasPath(dir, SETTINGS_GRADLE_GROOVY) ||
         hasPath(dir, SETTINGS_GRADLE_KOTLIN)
 
-internal fun isGradleGroovyDsl(dir: File): Boolean =
-    hasPath(dir, BUILD_GRADLE_GROOVY) ||
-        hasPath(dir, SETTINGS_GRADLE_GROOVY)
+internal fun isGroovy(dir: File): Boolean = hasPath(dir, SrcDirType.GROOVY.values)
 
-internal fun isGradleKotlinDsl(dir: File): Boolean =
-    hasPath(dir, BUILD_GRADLE_KOTLIN) ||
-        hasPath(dir, SETTINGS_GRADLE_KOTLIN)
+internal fun isJava(dir: File): Boolean = hasPath(dir, SrcDirType.JAVA.values)
 
-internal fun isGroovy(dir: File): Boolean =
-    hasPath(dir, SrcDirType.GROOVY.values)
+internal fun isKotlin(dir: File): Boolean = hasPath(dir, SrcDirType.KOTLIN.values)
 
-internal fun isJava(dir: File): Boolean =
-    hasPath(dir, SrcDirType.JAVA.values)
+internal fun isMaven(dir: File): Boolean = hasPath(dir, MAVEN_POM)
 
-internal fun isKotlin(dir: File): Boolean =
-    hasPath(dir, SrcDirType.KOTLIN.values)
-
-internal fun isMaven(dir: File): Boolean =
-    hasPath(dir, MAVEN_POM)
-
-internal fun padSpaces(line: String, spaces: Int): String =
-    if (spaces == 0) line else line.padStart(line.length + spaces)
+internal fun padSpaces(
+    line: String,
+    spaces: Int,
+): String = if (spaces == 0) line else line.padStart(line.length + spaces)

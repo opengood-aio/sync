@@ -1,0 +1,8 @@
+name: cancel
+on: [push]
+
+jobs:
+  cancel:
+    uses: opengood-aio/central-workflows/.github/workflows/workflow-cancel.yml@main
+    secrets:
+      workflow-token: ${{ secrets.WORKFLOW_TOKEN }}

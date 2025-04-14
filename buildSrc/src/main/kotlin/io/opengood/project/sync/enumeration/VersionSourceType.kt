@@ -5,7 +5,9 @@ import com.fasterxml.jackson.annotation.JsonFormat.Shape
 import com.fasterxml.jackson.annotation.JsonValue
 
 @JsonFormat(shape = Shape.OBJECT)
-enum class VersionSourceType(@JsonValue private val value: String) {
+enum class VersionSourceType(
+    @JsonValue private val value: String,
+) {
     GRADLE_PLUGINS_REPO("Gradle Plugins Repo"),
     GRADLE_SERVICES("Gradle Services"),
     MAVEN_CENTRAL_REPO("Maven Central Repo"),

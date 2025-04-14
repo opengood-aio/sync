@@ -19,7 +19,6 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.kotlin.dsl.support.serviceOf
 
 open class BaseTask : DefaultTask() {
-
     private val out = project.serviceOf<StyledTextOutputFactory>().create("colored-output")
 
     protected fun execute(
@@ -38,13 +37,14 @@ open class BaseTask : DefaultTask() {
         printInfo("Sync project directory: '${context.syncProjectDir}'")
         printBlankLine()
 
-        val master = try {
-            getSyncMaster(context.syncProjectDir)
-        } catch (e: Exception) {
-            printException("Unable to parse sync master file", e)
-            printComplete(displayName)
-            SyncMaster.EMPTY
-        }
+        val master =
+            try {
+                getSyncMaster(context.syncProjectDir)
+            } catch (e: Exception) {
+                printException("Unable to parse sync master file", e)
+                printComplete(displayName)
+                SyncMaster.EMPTY
+            }
 
         if (master != SyncMaster.EMPTY) {
             printInfo("Sync master info...")
@@ -76,26 +76,28 @@ open class BaseTask : DefaultTask() {
                 }
             }
 
-            val projects = try {
-                if (projectPath.isNotBlank()) {
-                    getSyncProjects(getPathAsFile(context.workspaceDir.absolutePath, projectPath))
-                } else {
-                    getSyncProjects(context.workspaceDir)
+            val projects =
+                try {
+                    if (projectPath.isNotBlank()) {
+                        getSyncProjects(getPathAsFile(context.workspaceDir.absolutePath, projectPath))
+                    } else {
+                        getSyncProjects(context.workspaceDir)
+                    }
+                } catch (e: Exception) {
+                    printException("Unable to parse project sync files", e)
+                    printComplete(taskName)
+                    emptyList()
                 }
-            } catch (e: Exception) {
-                printException("Unable to parse project sync files", e)
-                printComplete(taskName)
-                emptyList()
-            }
 
             if (projects.isNotEmpty()) {
                 projects.forEach { project ->
-                    val buildInfo = try {
-                        getBuildInfo(project.dir)
-                    } catch (e: Exception) {
-                        printException("Unable to get build info", e)
-                        BuildInfo.EMPTY
-                    }
+                    val buildInfo =
+                        try {
+                            getBuildInfo(project.dir)
+                        } catch (e: Exception) {
+                            printException("Unable to get build info", e)
+                            BuildInfo.EMPTY
+                        }
 
                     with(project) {
                         printInfo("Sync project info...")
@@ -155,26 +157,22 @@ open class BaseTask : DefaultTask() {
         }
     }
 
-    protected fun printBlankLine() =
-        println()
+    protected fun printBlankLine() = println()
 
-    protected fun printComplete(name: String) =
-        print(Style.ProgressStatus, true, "Completed $name task!")
+    protected fun printComplete(name: String) = print(Style.ProgressStatus, true, "Completed $name task!")
 
-    protected fun printDivider() =
-        print(Style.Header, true, "----------------------------------------------")
+    protected fun printDivider() = print(Style.Header, true, "----------------------------------------------")
 
-    protected fun printDone() =
-        print(Style.Success, true, "Done!")
+    protected fun printDone() = print(Style.Success, true, "Done!")
 
-    protected fun printException(message: String, e: Exception) =
-        print(Style.Error, false, "$message:", e.stackTraceToString())
+    protected fun printException(
+        message: String,
+        e: Exception,
+    ) = print(Style.Error, false, "$message:", e.stackTraceToString())
 
-    protected fun printExecute(name: String) =
-        print(Style.ProgressStatus, true, "Executing $name task...")
+    protected fun printExecute(name: String) = print(Style.ProgressStatus, true, "Executing $name task...")
 
-    protected fun printFailure(message: String) =
-        print(Style.Failure, false, message)
+    protected fun printFailure(message: String) = print(Style.Failure, false, message)
 
     protected fun printHeader(name: String) =
         print(
@@ -185,24 +183,25 @@ open class BaseTask : DefaultTask() {
             "***************************************************",
         )
 
-    protected fun printInfo(message: String) =
-        print(Style.Info, false, message)
+    protected fun printInfo(message: String) = print(Style.Info, false, message)
 
-    protected fun printProgress(message: String) =
-        print(Style.ProgressStatus, false, message)
+    protected fun printProgress(message: String) = print(Style.ProgressStatus, false, message)
 
-    protected fun printSuccess(message: String) =
-        print(Style.Success, false, message)
+    protected fun printSuccess(message: String) = print(Style.Success, false, message)
 
-    protected fun printWarning(message: String) =
-        print(Style.Description, false, message)
+    protected fun printWarning(message: String) = print(Style.Description, false, message)
 
-    protected fun printWarning(message: String, e: Exception) =
-        print(Style.Description, false, "$message: ${e.message}")
+    protected fun printWarning(
+        message: String,
+        e: Exception,
+    ) = print(Style.Description, false, "$message: ${e.message}")
 
-    private fun print(style: Style, blankLine: Boolean, vararg messages: String) =
-        with(out.style(style)) {
-            messages.forEach { println(it) }
-            if (blankLine) println()
-        }
+    private fun print(
+        style: Style,
+        blankLine: Boolean,
+        vararg messages: String,
+    ) = with(out.style(style)) {
+        messages.forEach { println(it) }
+        if (blankLine) println()
+    }
 }

@@ -9,13 +9,14 @@ data class VersionPattern(
     val value: String = "",
 ) {
     companion object {
-        val EMPTY = VersionPattern(
-            key = "",
-            pattern = "",
-            index = -1,
-            trim = mutableListOf(),
-            newLine = false,
-            value = "",
-        )
+        val EMPTY =
+            VersionPattern(
+                key = "",
+                pattern = "",
+                index = -1,
+                trim = mutableListOf(),
+                newLine = false,
+                value = "",
+            )
     }
 }

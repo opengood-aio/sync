@@ -14,12 +14,13 @@ data class SyncProject(
     lateinit var file: File
 
     companion object {
-        val EMPTY = SyncProject(
-            version = "",
-            config = ConfigInfo.EMPTY,
-            git = GitInfo.EMPTY,
-            ci = CiProjectConfig.EMPTY,
-            versions = VersionProjectConfig.EMPTY,
-        )
+        val EMPTY =
+            SyncProject(
+                version = "",
+                config = ConfigInfo.EMPTY,
+                git = GitInfo.EMPTY,
+                ci = CiProjectConfig.EMPTY,
+                versions = VersionProjectConfig.EMPTY,
+            )
     }
 }

@@ -4,8 +4,9 @@ data class CiMasterConfig(
     val providers: List<CiProvider> = emptyList(),
 ) {
     companion object {
-        val EMPTY = CiMasterConfig(
-            providers = emptyList()
-        )
+        val EMPTY =
+            CiMasterConfig(
+                providers = emptyList(),
+            )
     }
 }

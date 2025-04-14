@@ -1,1 +1,5 @@
 version: 2.0
+
+ci:
+  provider: GitHub Actions
+  template: gradle/cli

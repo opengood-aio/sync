@@ -5,9 +5,10 @@ data class VersionGroupAttributes(
     var path: String,
 ) {
     companion object {
-        val EMPTY = VersionGroupAttributes(
-            group = "",
-            path = "",
-        )
+        val EMPTY =
+            VersionGroupAttributes(
+                group = "",
+                path = "",
+            )
     }
 }

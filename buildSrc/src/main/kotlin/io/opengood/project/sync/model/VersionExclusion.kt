@@ -10,12 +10,13 @@ data class VersionExclusion(
     val versions: List<String>,
 ) {
     companion object {
-        val EMPTY = VersionExclusion(
-            description = "",
-            type = VersionProviderType.UNKNOWN,
-            group = "",
-            name = "",
-            versions = emptyList(),
-        )
+        val EMPTY =
+            VersionExclusion(
+                description = "",
+                type = VersionProviderType.UNKNOWN,
+                group = "",
+                name = "",
+                versions = emptyList(),
+            )
     }
 }

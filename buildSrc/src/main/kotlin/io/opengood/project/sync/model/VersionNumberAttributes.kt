@@ -5,9 +5,10 @@ data class VersionNumberAttributes(
     var new: String,
 ) {
     companion object {
-        val EMPTY = VersionNumberAttributes(
-            current = "",
-            new = "",
-        )
+        val EMPTY =
+            VersionNumberAttributes(
+                current = "",
+                new = "",
+            )
     }
 }

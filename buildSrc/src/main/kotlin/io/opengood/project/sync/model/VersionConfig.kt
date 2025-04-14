@@ -5,9 +5,10 @@ data class VersionConfig(
     val patterns: VersionConfigPatterns,
 ) {
     companion object {
-        val EMPTY = VersionConfig(
-            git = GitInfo.EMPTY,
-            patterns = VersionConfigPatterns.EMPTY,
-        )
+        val EMPTY =
+            VersionConfig(
+                git = GitInfo.EMPTY,
+                patterns = VersionConfigPatterns.EMPTY,
+            )
     }
 }

@@ -6,10 +6,11 @@ data class VersionMasterConfig(
     val providers: List<VersionProvider>,
 ) {
     companion object {
-        val EMPTY = VersionMasterConfig(
-            config = VersionConfig.EMPTY,
-            exclusions = emptyList(),
-            providers = emptyList(),
-        )
+        val EMPTY =
+            VersionMasterConfig(
+                config = VersionConfig.EMPTY,
+                exclusions = emptyList(),
+                providers = emptyList(),
+            )
     }
 }

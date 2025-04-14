@@ -9,7 +9,6 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
 
 open class SyncGitCommit : BaseTask() {
-
     @Input
     lateinit var workspacePath: String
 
@@ -29,46 +28,55 @@ open class SyncGitCommit : BaseTask() {
             workspacePath = workspacePath,
             projectPath = projectPath,
         ) { _, master: SyncMaster, project: SyncProject, _ ->
-            val commitMessage = if (project.git != GitInfo.EMPTY && project.git.commitMessage.isNotBlank()) {
-                project.git.commitMessage
-            } else {
-                master.git.commitMessage.ifBlank {
-                    GitInfo.DEFAULT_COMMIT_MESSAGE
+            val commitMessage =
+                if (project.git != GitInfo.EMPTY && project.git.commitMessage.isNotBlank()) {
+                    project.git.commitMessage
+                } else {
+                    master.git.commitMessage.ifBlank {
+                        GitInfo.DEFAULT_COMMIT_MESSAGE
+                    }
                 }
-            }
 
             with(project) {
                 shellRun(dir) {
-                    val branch = if (project.git.branch.isNotBlank()) {
-                        project.git.branch
-                    } else {
-                        git.currentBranch()
-                    }
+                    val branch =
+                        project.git.branch.ifBlank {
+                            git.currentBranch()
+                        }
 
                     with(project.git) {
                         printInfo("Determining project changes for '$name' in local Git repo '$dir'...")
+                        printBlankLine()
                         val status = git.status()
 
                         if (status.isNotBlank()) {
-                            printInfo("Git status:")
+                            printInfo("Determining current Git status...")
                             printInfo(status)
+                            printDone()
 
                             printProgress("Checking out '$branch' branch on local Git repo...")
                             git.checkout(branch)
+                            printDone()
 
                             printProgress("Committing all changes to '$branch' branch in local Git repo...")
                             git.commitAllChanges(commitMessage)
                             printDone()
 
-                            printProgress("Pulling potential changes from remote '$remote' Git repo...")
-                            git.pull(remote, branch)
-                            printDone()
+                            printProgress("Pulling potential changes from remote '$remote' in branch '$branch' Git repo...")
+                            try {
+                                git.pull(remote, branch)
+                                printDone()
+                            } catch (e: Exception) {
+                                printWarning("Unable to pull changes from remote '$remote' in branch '$branch' Git repo", e)
+                                printBlankLine()
+                            }
 
-                            printProgress("Pushing changes to remote '$remote' Git repo...")
+                            printProgress("Pushing changes to remote '$remote' in branch '$branch' Git repo...")
                             git.push(remote, branch)
                             printDone()
                         } else {
                             printInfo("No project changes found in local Git repo. Skipping.")
+                            printBlankLine()
                         }
                     }
                     StringUtils.EMPTY

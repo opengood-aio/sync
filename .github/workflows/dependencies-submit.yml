@@ -1,0 +1,19 @@
+name: dependencies-submit
+
+on:
+  pull_request:
+    types:
+      - closed
+      - labeled
+    branches:
+      - main
+    paths-ignore:
+      - .github/workflows/*
+      - .gitignore
+      - gradle.properties
+      - LICENSE
+      - README.md
+
+jobs:
+  dependencies-submit:
+    uses: opengood-aio/central-workflows/.github/workflows/gradle-dependencies-submit.yml@main

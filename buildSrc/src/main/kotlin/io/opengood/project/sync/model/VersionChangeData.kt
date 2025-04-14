@@ -11,13 +11,14 @@ data class VersionChangeData(
     val provider: VersionProvider,
 ) {
     companion object {
-        val EMPTY = VersionChangeData(
-            file = FileType.UNKNOWN,
-            line = VersionLineData.EMPTY,
-            attributes = VersionAttributes.EMPTY,
-            exclusions = emptyList(),
-            patterns = VersionConfigPatterns.EMPTY,
-            provider = VersionProvider.EMPTY,
-        )
+        val EMPTY =
+            VersionChangeData(
+                file = FileType.UNKNOWN,
+                line = VersionLineData.EMPTY,
+                attributes = VersionAttributes.EMPTY,
+                exclusions = emptyList(),
+                patterns = VersionConfigPatterns.EMPTY,
+                provider = VersionProvider.EMPTY,
+            )
     }
 }
