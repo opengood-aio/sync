@@ -1,0 +1,21 @@
+name: CodeQL
+
+on:
+  pull_request:
+    types:
+      - closed
+      - labeled
+    branches:
+      - main
+    paths-ignore:
+      - .github/workflows/*
+      - .gitignore
+      - gradle.properties
+      - LICENSE
+      - README.md
+
+jobs:
+  build:
+    uses: opengood-aio/central-workflows/.github/workflows/codeql-analyze.yml@main
+    with:
+      java-version: 21

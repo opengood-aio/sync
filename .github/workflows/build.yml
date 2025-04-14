@@ -1,0 +1,21 @@
+name: build
+
+on:
+  push:
+    branches:
+      - '**'
+      - '!main'
+    paths-ignore:
+      - .github/workflows/*
+      - .gitignore
+      - gradle.properties
+      - LICENSE
+      - README.md
+
+jobs:
+  build:
+    uses: opengood-aio/central-workflows/.github/workflows/gradle-cli-build.yml@main
+    with:
+      run-gradle-validation: true
+    secrets:
+      codecov-token: ${{ secrets.CODECOV_TOKEN }}
