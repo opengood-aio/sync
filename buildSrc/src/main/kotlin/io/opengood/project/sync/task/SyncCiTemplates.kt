@@ -12,7 +12,6 @@ import org.gradle.api.tasks.TaskAction
 import java.io.FileNotFoundException
 
 open class SyncCiTemplates : BaseTask() {
-
     @Input
     lateinit var workspacePath: String
 
@@ -30,7 +29,7 @@ open class SyncCiTemplates : BaseTask() {
             taskName = TASK_NAME,
             displayName = TASK_DISPLAY_NAME,
             workspacePath = workspacePath,
-            projectPath = projectPath
+            projectPath = projectPath,
         ) { context: SyncContext, master: SyncMaster, project: SyncProject, _ ->
             if (project.ci != CiProjectConfig.EMPTY) {
                 val provider = master.getCiProvider(project.ci.provider)
@@ -49,7 +48,8 @@ open class SyncCiTemplates : BaseTask() {
                     printInfo("Copying CI provider '${project.ci.provider}' templates from source directory: '$srcDir'...")
                     printBlankLine()
 
-                    srcDir.walkTopDown()
+                    srcDir
+                        .walkTopDown()
                         .filter { !it.isDirectory }
                         .forEach { file ->
                             printProgress("Copying CI provider template '${file.name}' to target directory: '$targetDir'")
@@ -61,8 +61,7 @@ open class SyncCiTemplates : BaseTask() {
         }
     }
 
-    private fun SyncMaster.getCiProvider(provider: CiProviderType): CiProvider =
-        ci.providers.first { it.name == provider }
+    private fun SyncMaster.getCiProvider(provider: CiProviderType): CiProvider = ci.providers.first { it.name == provider }
 
     companion object {
         const val TASK_NAME = "syncCiTemplates"

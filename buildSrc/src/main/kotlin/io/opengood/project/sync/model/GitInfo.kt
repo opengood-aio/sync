@@ -11,10 +11,11 @@ data class GitInfo(
     companion object {
         const val DEFAULT_COMMIT_MESSAGE = "Perform automatic project sync changes"
 
-        val EMPTY = GitInfo(
-            remote = "",
-            branch = "",
-            commitMessage = "",
-        )
+        val EMPTY =
+            GitInfo(
+                remote = "",
+                branch = "",
+                commitMessage = "",
+            )
     }
 }

@@ -5,7 +5,9 @@ import com.fasterxml.jackson.annotation.JsonFormat.Shape
 import com.fasterxml.jackson.annotation.JsonValue
 
 @JsonFormat(shape = Shape.OBJECT)
-enum class FileType(@JsonValue private val value: String) {
+enum class FileType(
+    @JsonValue private val value: String,
+) {
     BUILD_GRADLE_GROOVY("build.gradle"),
     BUILD_GRADLE_KOTLIN("build.gradle.kts"),
     DOCKER_FILE("Dockerfile"),

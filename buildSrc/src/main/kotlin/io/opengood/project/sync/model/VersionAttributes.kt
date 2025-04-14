@@ -9,13 +9,14 @@ data class VersionAttributes(
     var version: VersionNumberAttributes,
 ) {
     companion object {
-        val EMPTY = VersionAttributes(
-            group = VersionGroupAttributes.EMPTY,
-            id = "",
-            key = "",
-            name = "",
-            uri = "",
-            version = VersionNumberAttributes.EMPTY,
-        )
+        val EMPTY =
+            VersionAttributes(
+                group = VersionGroupAttributes.EMPTY,
+                id = "",
+                key = "",
+                name = "",
+                uri = "",
+                version = VersionNumberAttributes.EMPTY,
+            )
     }
 }

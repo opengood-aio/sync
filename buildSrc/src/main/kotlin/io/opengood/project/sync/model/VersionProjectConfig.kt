@@ -5,9 +5,10 @@ data class VersionProjectConfig(
     val exclusions: List<VersionExclusion>,
 ) {
     companion object {
-        val EMPTY = VersionProjectConfig(
-            config = VersionConfig.EMPTY,
-            exclusions = emptyList(),
-        )
+        val EMPTY =
+            VersionProjectConfig(
+                config = VersionConfig.EMPTY,
+                exclusions = emptyList(),
+            )
     }
 }

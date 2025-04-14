@@ -10,10 +10,11 @@ data class BuildInfo(
     val files: List<FileType>,
 ) {
     companion object {
-        val EMPTY = BuildInfo(
-            language = LanguageType.UNKNOWN,
-            tool = BuildToolType.UNKNOWN,
-            files = emptyList(),
-        )
+        val EMPTY =
+            BuildInfo(
+                language = LanguageType.UNKNOWN,
+                tool = BuildToolType.UNKNOWN,
+                files = emptyList(),
+            )
     }
 }

@@ -7,11 +7,12 @@ data class VersionLineData(
     val priorLine: String,
 ) {
     companion object {
-        val EMPTY = VersionLineData(
-            currentLine = "",
-            spaces = -1,
-            prevLine = "",
-            priorLine = "",
-        )
+        val EMPTY =
+            VersionLineData(
+                currentLine = "",
+                spaces = -1,
+                prevLine = "",
+                priorLine = "",
+            )
     }
 }

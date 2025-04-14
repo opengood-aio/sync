@@ -15,12 +15,13 @@ data class VersionConfigPatterns(
     val versionPlaceholder: String,
 ) {
     companion object {
-        val EMPTY = VersionConfigPatterns(
-            devVersion = "",
-            semanticVersion = "",
-            versionNumber = "",
-            versionNumberIgnore = emptyList(),
-            versionPlaceholder = "",
-        )
+        val EMPTY =
+            VersionConfigPatterns(
+                devVersion = "",
+                semanticVersion = "",
+                versionNumber = "",
+                versionNumberIgnore = emptyList(),
+                versionPlaceholder = "",
+            )
     }
 }

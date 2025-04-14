@@ -7,9 +7,10 @@ data class CiProjectConfig(
     val template: String,
 ) {
     companion object {
-        val EMPTY = CiProjectConfig(
-            provider = CiProviderType.UNKNOWN,
-            template = "",
-        )
+        val EMPTY =
+            CiProjectConfig(
+                provider = CiProviderType.UNKNOWN,
+                template = "",
+            )
     }
 }

@@ -10,12 +10,13 @@ data class VersionUri(
     val index: Int,
 ) {
     companion object {
-        val EMPTY = VersionUri(
-            uri = "",
-            enabled = false,
-            source = VersionSourceType.UNKNOWN,
-            pattern = "",
-            index = -1,
-        )
+        val EMPTY =
+            VersionUri(
+                uri = "",
+                enabled = false,
+                source = VersionSourceType.UNKNOWN,
+                pattern = "",
+                index = -1,
+            )
     }
 }

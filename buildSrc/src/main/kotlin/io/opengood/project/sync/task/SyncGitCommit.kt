@@ -9,7 +9,6 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
 
 open class SyncGitCommit : BaseTask() {
-
     @Input
     lateinit var workspacePath: String
 
@@ -29,19 +28,21 @@ open class SyncGitCommit : BaseTask() {
             workspacePath = workspacePath,
             projectPath = projectPath,
         ) { _, master: SyncMaster, project: SyncProject, _ ->
-            val commitMessage = if (project.git != GitInfo.EMPTY && project.git.commitMessage.isNotBlank()) {
-                project.git.commitMessage
-            } else {
-                master.git.commitMessage.ifBlank {
-                    GitInfo.DEFAULT_COMMIT_MESSAGE
+            val commitMessage =
+                if (project.git != GitInfo.EMPTY && project.git.commitMessage.isNotBlank()) {
+                    project.git.commitMessage
+                } else {
+                    master.git.commitMessage.ifBlank {
+                        GitInfo.DEFAULT_COMMIT_MESSAGE
+                    }
                 }
-            }
 
             with(project) {
                 shellRun(dir) {
-                    val branch = project.git.branch.ifBlank {
-                        git.currentBranch()
-                    }
+                    val branch =
+                        project.git.branch.ifBlank {
+                            git.currentBranch()
+                        }
 
                     with(project.git) {
                         printInfo("Determining project changes for '$name' in local Git repo '$dir'...")

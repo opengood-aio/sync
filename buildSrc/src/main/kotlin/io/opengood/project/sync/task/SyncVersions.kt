@@ -57,7 +57,6 @@ import java.nio.file.Files
 import java.util.regex.Pattern
 
 open class SyncVersions : BaseTask() {
-
     @Input
     lateinit var workspacePath: String
 
@@ -83,22 +82,24 @@ open class SyncVersions : BaseTask() {
                 var prevLine = StringUtils.EMPTY
                 Files.write(
                     versionFile.toPath(),
-                    Files.lines(versionFile.toPath())
+                    Files
+                        .lines(versionFile.toPath())
                         .map { line ->
                             var currentLine = line
 
                             with(master.versions) {
                                 providers.forEach { provider ->
                                     if (provider.enabled) {
-                                        val data = getVersionChangeData(
-                                            versionFile,
-                                            master.versions,
-                                            project.versions,
-                                            provider,
-                                            currentLine,
-                                            prevLine,
-                                            priorLine,
-                                        )
+                                        val data =
+                                            getVersionChangeData(
+                                                versionFile,
+                                                master.versions,
+                                                project.versions,
+                                                provider,
+                                                currentLine,
+                                                prevLine,
+                                                priorLine,
+                                            )
                                         with(provider) {
                                             if (files.contains(data.file)) {
                                                 currentLine = changeLine(data)
@@ -111,8 +112,7 @@ open class SyncVersions : BaseTask() {
                             priorLine = prevLine
                             prevLine = currentLine
                             currentLine
-                        }
-                        .toList(),
+                        }.toList(),
                 )
             }
         }
@@ -127,17 +127,23 @@ open class SyncVersions : BaseTask() {
                             tools.containsAny(DOCKER, GRADLE, MAVEN) -> {
                                 when {
                                     files.containsAny(
-                                        DOCKER_FILE
+                                        DOCKER_FILE,
                                     ) -> {
                                         with(group) {
                                             with(version) {
-                                                if (key.isNotBlank() && group.isNotBlank() && name.isNotBlank() &&
+                                                if (key.isNotBlank() &&
+                                                    group.isNotBlank() &&
+                                                    name.isNotBlank() &&
                                                     current.isNotBlank()
                                                 ) {
-                                                    printInfo("Determining if Docker image '$group:$name' needs to be updated in file '$file'")
+                                                    printInfo(
+                                                        "Determining if Docker image '$group:$name' needs to be updated in file '$file'",
+                                                    )
                                                     new = getVersionNumber(data)
                                                     if (StringUtils.isNotBlank(new) && current != new) {
-                                                        printProgress("Updating Docker image '$group:$name' from version '$current' to '$new'...")
+                                                        printProgress(
+                                                            "Updating Docker image '$group:$name' from version '$current' to '$new'...",
+                                                        )
                                                         val formattedLine = formatLine(data)
                                                         printDone()
                                                         return formattedLine
@@ -159,14 +165,21 @@ open class SyncVersions : BaseTask() {
                                     ) -> {
                                         with(group) {
                                             with(version) {
-                                                if (key.isNotBlank() && group.isNotBlank() && name.isNotBlank() &&
-                                                    current.isNotBlank() && current != patterns.versionPlaceholder
+                                                if (key.isNotBlank() &&
+                                                    group.isNotBlank() &&
+                                                    name.isNotBlank() &&
+                                                    current.isNotBlank() &&
+                                                    current != patterns.versionPlaceholder
                                                 ) {
                                                     if (!isVersionNumberDev(current, patterns)) {
-                                                        printInfo("Determining if Gradle dependency/plugin '$group:$name' needs to be updated in file '$file'")
+                                                        printInfo(
+                                                            "Determining if Gradle dependency/plugin '$group:$name' needs to be updated in file '$file'",
+                                                        )
                                                         new = getVersionNumber(data)
                                                         if (StringUtils.isNotBlank(new) && current != new) {
-                                                            printProgress("Updating Gradle dependency/plugin '$group:$name' from version '$current' to '$new'...")
+                                                            printProgress(
+                                                                "Updating Gradle dependency/plugin '$group:$name' from version '$current' to '$new'...",
+                                                            )
                                                             val formattedLine = formatLine(data)
                                                             printDone()
                                                             return formattedLine
@@ -186,10 +199,14 @@ open class SyncVersions : BaseTask() {
                                             with(version) {
                                                 if (key.isNotBlank() && group.isNotBlank() && name.isNotBlank() && current.isNotBlank()) {
                                                     if (!isVersionNumberDev(current, patterns)) {
-                                                        printInfo("Determining if Gradle/Maven dependency/plugin '$group:$name' needs to be updated in file '$file'")
+                                                        printInfo(
+                                                            "Determining if Gradle/Maven dependency/plugin '$group:$name' needs to be updated in file '$file'",
+                                                        )
                                                         new = getVersionNumber(data)
                                                         if (StringUtils.isNotBlank(new) && current != new) {
-                                                            printProgress("Updating Gradle/Maven dependency/plugin '$group:$name' from version '$current' to '$new'...")
+                                                            printProgress(
+                                                                "Updating Gradle/Maven dependency/plugin '$group:$name' from version '$current' to '$new'...",
+                                                            )
                                                             val formattedLine = formatLine(data)
                                                             printDone()
                                                             return formattedLine
@@ -237,7 +254,10 @@ open class SyncVersions : BaseTask() {
         }
     }
 
-    private fun downloadAttribute(uri: String, pattern: VersionPattern): String {
+    private fun downloadAttribute(
+        uri: String,
+        pattern: VersionPattern,
+    ): String {
         with(pattern) {
             val (_, _, result) = uri.httpGet().responseString()
             return when (result) {
@@ -264,7 +284,11 @@ open class SyncVersions : BaseTask() {
         }
     }
 
-    private fun downloadVersionNumber(uri: VersionUri, pattern: String, data: VersionChangeData): String {
+    private fun downloadVersionNumber(
+        uri: VersionUri,
+        pattern: String,
+        data: VersionChangeData,
+    ): String {
         with(data) {
             with(provider) {
                 with(uri) {
@@ -289,11 +313,11 @@ open class SyncVersions : BaseTask() {
                                 source.containsAny(GRADLE_PLUGINS_REPO, MAVEN_CENTRAL_REPO, NEXUS_PROXY_REPO) -> {
                                     try {
                                         val document = DocumentHelper.parseText(result.get())
-                                        document.selectNodes(pattern)
+                                        document
+                                            .selectNodes(pattern)
                                             .filter { node ->
                                                 !isVersionNumberExcluded(node.text, exclusions, attributes)
-                                            }
-                                            .last { node -> isVersionNumberMatch(node.text, patterns) }
+                                            }.last { node -> isVersionNumberMatch(node.text, patterns) }
                                             .text
                                     } catch (e: Exception) {
                                         val types = types.toDelimiter()
@@ -307,15 +331,15 @@ open class SyncVersions : BaseTask() {
 
                                 source.containsAny(NEXUS_HOSTED_REPO) -> {
                                     try {
-                                        JsonPath.parse(result.get())
+                                        JsonPath
+                                            .parse(result.get())
                                             .read<List<Map<String, String>>>(pattern)
                                             .map { it["version"] }
                                             .filter { StringUtils.isNotBlank(it) }
                                             .map { it.toString() }
                                             .filter { version ->
                                                 !isVersionNumberExcluded(version, exclusions, attributes)
-                                            }
-                                            .firstOrDefault(
+                                            }.firstOrDefault(
                                                 { version -> isSemanticVersionNumberMatch(version, patterns) },
                                                 StringUtils.EMPTY,
                                             )
@@ -350,7 +374,11 @@ open class SyncVersions : BaseTask() {
         }
     }
 
-    private fun findPatternMatch(key: String, patterns: List<VersionPattern>, value: String): String {
+    private fun findPatternMatch(
+        key: String,
+        patterns: List<VersionPattern>,
+        value: String,
+    ): String {
         val pattern = getPattern(key, patterns)
         if (pattern != VersionPattern.EMPTY && value.isNotBlank()) {
             with(pattern) {
@@ -376,8 +404,11 @@ open class SyncVersions : BaseTask() {
         return StringUtils.EMPTY
     }
 
-    private fun findPatternMatch(key: String, pattern: VersionPattern, value: String) =
-        findPatternMatch(key, listOf(pattern), value)
+    private fun findPatternMatch(
+        key: String,
+        pattern: VersionPattern,
+        value: String,
+    ) = findPatternMatch(key, listOf(pattern), value)
 
     private fun formatLine(data: VersionChangeData): String {
         with(data) {
@@ -391,14 +422,15 @@ open class SyncVersions : BaseTask() {
 
                                 with(group) {
                                     with(version) {
-                                        val map = mapOf(
-                                            "group" to group,
-                                            "id" to id,
-                                            "key" to key,
-                                            "name" to name,
-                                            "uri" to uri,
-                                            "version" to new,
-                                        )
+                                        val map =
+                                            mapOf(
+                                                "group" to group,
+                                                "id" to id,
+                                                "key" to key,
+                                                "name" to name,
+                                                "uri" to uri,
+                                                "version" to new,
+                                            )
                                         map.forEach {
                                             if (line.contains("{${it.key}}")) {
                                                 line = line.replace("{${it.key}}", it.value)
@@ -424,10 +456,15 @@ open class SyncVersions : BaseTask() {
         }
     }
 
-    private fun getPattern(key: String, patterns: List<VersionPattern>) =
-        patterns.firstOrDefault({ it.key == key }, VersionPattern.EMPTY)
+    private fun getPattern(
+        key: String,
+        patterns: List<VersionPattern>,
+    ) = patterns.firstOrDefault({ it.key == key }, VersionPattern.EMPTY)
 
-    private fun getPatternLine(key: String, data: VersionChangeData): String {
+    private fun getPatternLine(
+        key: String,
+        data: VersionChangeData,
+    ): String {
         with(data) {
             with(provider) {
                 with(line) {
@@ -447,19 +484,23 @@ open class SyncVersions : BaseTask() {
         }
     }
 
-    private fun getUri(uri: VersionUri, data: VersionChangeData): VersionUri {
-        return with(data) {
+    private fun getUri(
+        uri: VersionUri,
+        data: VersionChangeData,
+    ): VersionUri =
+        with(data) {
             with(provider) {
                 with(attributes) {
                     with(uri) {
                         when {
                             tools.containsAny(DOCKER, GRADLE, MAVEN) -> {
-                                val group = with(group) {
-                                    when {
-                                        source.containsAny(NEXUS_HOSTED_REPO) -> group
-                                        else -> path
+                                val group =
+                                    with(group) {
+                                        when {
+                                            source.containsAny(NEXUS_HOSTED_REPO) -> group
+                                            else -> path
+                                        }
                                     }
-                                }
                                 VersionUri(
                                     uri = this.uri.replace("{group}", group).replace("{name}", name),
                                     source = source,
@@ -474,7 +515,6 @@ open class SyncVersions : BaseTask() {
                 }
             }
         }
-    }
 
     private fun getVersionChangeData(
         file: File,
@@ -483,19 +523,21 @@ open class SyncVersions : BaseTask() {
         provider: VersionProvider,
         vararg lines: String,
     ): VersionChangeData {
-        val data = VersionChangeData(
-            file = getFileType(file),
-            line = VersionLineData(
-                currentLine = lines[0],
-                spaces = countSpaces(lines[0]),
-                prevLine = lines[1],
-                priorLine = lines[2],
-            ),
-            attributes = VersionAttributes.EMPTY,
-            exclusions = master.exclusions + project.exclusions,
-            patterns = master.config.patterns,
-            provider = provider,
-        )
+        val data =
+            VersionChangeData(
+                file = getFileType(file),
+                line =
+                    VersionLineData(
+                        currentLine = lines[0],
+                        spaces = countSpaces(lines[0]),
+                        prevLine = lines[1],
+                        priorLine = lines[2],
+                    ),
+                attributes = VersionAttributes.EMPTY,
+                exclusions = master.exclusions + project.exclusions,
+                patterns = master.config.patterns,
+                provider = provider,
+            )
 
         with(data) {
             with(provider) {
@@ -606,7 +648,8 @@ open class SyncVersions : BaseTask() {
         with(data) {
             with(provider) {
                 val versionNumbers = mutableListOf<String>()
-                uris.filter { it.enabled }
+                uris
+                    .filter { it.enabled }
                     .forEach { uri ->
                         val downloadUri = getUri(uri, data)
                         val versionNumber = downloadVersionNumber(downloadUri, uri.pattern, data)
@@ -623,19 +666,24 @@ open class SyncVersions : BaseTask() {
         return StringUtils.EMPTY
     }
 
-    private fun isSemanticVersionNumberMatch(versionNumber: String, patterns: VersionConfigPatterns): Boolean =
+    private fun isSemanticVersionNumberMatch(
+        versionNumber: String,
+        patterns: VersionConfigPatterns,
+    ): Boolean =
         patterns.semanticVersion.toRegex().matches(versionNumber) &&
             !patterns.versionNumberIgnore.any { versionNumber.contains(it) }
 
-    private fun isVersionNumberDev(versionNumber: String, patterns: VersionConfigPatterns): Boolean =
-        patterns.devVersion.toRegex().matches(versionNumber)
+    private fun isVersionNumberDev(
+        versionNumber: String,
+        patterns: VersionConfigPatterns,
+    ): Boolean = patterns.devVersion.toRegex().matches(versionNumber)
 
     private fun isVersionNumberExcluded(
         versionNumber: String,
         exclusions: List<VersionExclusion>,
         attributes: VersionAttributes,
-    ): Boolean {
-        return if (exclusions.isEmpty()) {
+    ): Boolean =
+        if (exclusions.isEmpty()) {
             false
         } else {
             with(attributes) {
@@ -647,9 +695,11 @@ open class SyncVersions : BaseTask() {
                 }
             }
         }
-    }
 
-    private fun isVersionNumberMatch(versionNumber: String, patterns: VersionConfigPatterns): Boolean =
+    private fun isVersionNumberMatch(
+        versionNumber: String,
+        patterns: VersionConfigPatterns,
+    ): Boolean =
         patterns.versionNumber.toRegex().matches(versionNumber) &&
             !patterns.versionNumberIgnore.any { versionNumber.contains(it) }
 
