@@ -39,9 +39,7 @@ open class SyncGitCommit : BaseTask() {
 
             with(project) {
                 shellRun(dir) {
-                    val branch = if (project.git.branch.isNotBlank()) {
-                        project.git.branch
-                    } else {
+                    val branch = project.git.branch.ifBlank {
                         git.currentBranch()
                     }
 
