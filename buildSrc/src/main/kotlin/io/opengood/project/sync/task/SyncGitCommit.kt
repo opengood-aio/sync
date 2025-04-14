@@ -49,7 +49,7 @@ open class SyncGitCommit : BaseTask() {
                         val status = git.status()
 
                         if (status.isNotBlank()) {
-                            printInfo("Git status:")
+                            printInfo("Determining current Git status:")
                             printInfo(status)
                             printDone()
 
