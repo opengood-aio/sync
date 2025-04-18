@@ -1,5 +1,9 @@
 # Sync Tool
 
+[![Build](https://github.com/opengood-aio/sync/workflows/build/badge.svg)](https://github.com/opengood-aio/sync/actions?query=workflow%3Abuild)
+[![CodeQL](https://github.com/opengood-aio/sync/actions/workflows/codeql.yml/badge.svg)](https://github.com/opengood-aio/sync/actions/workflows/codeql.yml)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/opengood-aio/sync/master/LICENSE)
+
 Software project artifact sync tool
 
 ## Abstract
