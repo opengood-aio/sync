@@ -54,7 +54,6 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
 import java.io.File
 import java.nio.file.Files
-import java.util.regex.Pattern
 
 open class SyncVersions : BaseTask() {
     @Input
@@ -278,10 +277,6 @@ open class SyncVersions : BaseTask() {
                 }
 
                 is Result.Failure -> {
-                    printWarning(
-                        "Unable to retrieve attribute from request URI '$uri' for: '$key'",
-                        result.getException(),
-                    )
                     StringUtils.EMPTY
                 }
             }
@@ -387,18 +382,23 @@ open class SyncVersions : BaseTask() {
         if (pattern != VersionPattern.EMPTY && value.isNotBlank()) {
             with(pattern) {
                 if (this.value.isBlank()) {
-                    val matcher = Pattern.compile(this.pattern).matcher(value)
-                    if (matcher.find()) {
-                        var match = matcher.group(index)
-                        if (trim.isNotEmpty()) {
-                            trim.forEach {
-                                match = match.replace(it, StringUtils.EMPTY)
+                    val regex = Regex(this.pattern)
+                    if (regex.containsMatchIn(value)) {
+                        val result = regex.find(value)
+                        if (result != null) {
+                            var match = result.groupValues[index]
+                            if (trim.isNotEmpty()) {
+                                trim.forEach {
+                                    match = match.replace(it, StringUtils.EMPTY)
+                                }
                             }
+                            if (match.isNotBlank()) {
+                                match = match.trim()
+                            }
+                            return match
+                        } else {
+                            return this.value
                         }
-                        if (match.isNotBlank()) {
-                            match = match.trim()
-                        }
-                        return match
                     }
                 } else {
                     return this.value
@@ -435,7 +435,7 @@ open class SyncVersions : BaseTask() {
                                                 "uri" to uri,
                                                 "version" to new,
                                             )
-                                        map.forEach {
+                                        map.forEach { it ->
                                             if (line.contains("{${it.key}}")) {
                                                 line = line.replace("{${it.key}}", it.value)
                                             }
@@ -584,16 +584,15 @@ open class SyncVersions : BaseTask() {
                                         with(group) {
                                             group = findPatternMatch("group", read, getPatternLine("group", data))
                                             path = getGroupAsPath(group)
-
-                                            val namePattern = getPattern("name", read)
-                                            namePattern.trim.add(group)
-                                            name = findPatternMatch("name", namePattern, getPatternLine("name", data))
+                                            name = findPatternMatch("name", getPattern("name", read), getPatternLine("name", data))
 
                                             with(version) {
-                                                val versionPattern = getPattern("version", read)
-                                                versionPattern.trim.addAll(listOf(group, name))
                                                 current =
-                                                    findPatternMatch("version", versionPattern, getPatternLine("version", data))
+                                                    findPatternMatch(
+                                                        "version",
+                                                        getPattern("version", read),
+                                                        getPatternLine("version", data),
+                                                    )
                                             }
                                         }
                                     }
@@ -617,10 +616,7 @@ open class SyncVersions : BaseTask() {
                                             with(group) {
                                                 group = downloadAttribute(uri, getPattern("group", read))
                                                 path = getGroupAsPath(group)
-
-                                                val namePattern = getPattern("name", read)
-                                                namePattern.trim.add(group)
-                                                name = downloadAttribute(uri, namePattern)
+                                                name = downloadAttribute(uri, getPattern("name", read))
                                             }
                                         }
                                     }
