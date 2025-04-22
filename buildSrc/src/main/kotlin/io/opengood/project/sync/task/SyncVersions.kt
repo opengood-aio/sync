@@ -587,11 +587,12 @@ open class SyncVersions : BaseTask() {
                                             name = findPatternMatch("name", getPattern("name", read), getPatternLine("name", data))
 
                                             with(version) {
-                                                current = findPatternMatch(
-                                                    "version",
-                                                    getPattern("version", read),
-                                                    getPatternLine("version", data)
-                                                )
+                                                current =
+                                                    findPatternMatch(
+                                                        "version",
+                                                        getPattern("version", read),
+                                                        getPatternLine("version", data),
+                                                    )
                                             }
                                         }
                                     }
