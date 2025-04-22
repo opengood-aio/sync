@@ -42,23 +42,17 @@ versions:
         - Dockerfile
       read:
         - key: key
-          pattern: '^([^\/]+)'
-          index: 0
-          trim:
-            - 'FROM '
+          pattern: 'FROM\s+([a-zA-Z0-9-]+)\.'
+          index: 1
         - key: group
-          pattern: '^([^\/]+)'
-          index: 0
-          trim:
-            - 'FROM '
+          pattern: 'FROM\s+([a-zA-Z0-9-]+)\.'
+          index: 1
         - key: name
-          pattern: '(?<=\/)(.*?)(?=\/)(.*)(?=\:)'
-          index: 0
+          pattern: 'FROM\s+[^/]+/(.+?)(?=:)'
+          index: 1
         - key: version
-          pattern: '([^:]+)$'
-          index: 0
-          trim:
-            - ':'
+          pattern: ':([^\\s]+)$'
+          index: 1
       uris:
         - uri: https://nexus.domain.com/service/rest/v1/search?repository=docker&name={name}&sort=version
           source: Nexus Hosted Repo
@@ -83,26 +77,16 @@ versions:
       read:
         - key: key
           pattern: '^(version)\.'
-          index: 0
-          trim:
-            - '.'
+          index: 1
         - key: group
-          pattern: '.*?(\.{2})'
-          index: 0
-          trim:
-            - 'version.'
-            - '..'
+          pattern: 'version\.([^.]+(?:\.[^.]+)*)\.\.'
+          index: 1
         - key: name
-          pattern: '\.{2}.*?\='
-          index: 0
-          trim:
-            - '..'
-            - '='
+          pattern: '\.\.([^\=]+)='
+          index: 1
         - key: version
-          pattern: '=\s*(.*)'
-          index: 0
-          trim:
-            - '='
+          pattern: '=([0-9]+(?:\.[0-9]+)*)$'
+          index: 1
       uris:
         - uri: https://repo.maven.apache.org/maven2/{group}/{name}/maven-metadata.xml
           source: Maven Central Repo
@@ -145,44 +129,17 @@ versions:
         - settings.gradle.kts
       read:
         - key: key
-          pattern: '^(\s*)(annotationProcessor|implementation|testAnnotationProcessor|testImplementation)\('
-          index: 0
-          trim:
-            - '('
+          pattern: '^\s*(annotationProcessor|implementation|testAnnotationProcessor|testImplementation)\('
+          index: 1
         - key: group
-          pattern: '(?=annotationProcessor|implementation|testAnnotationProcessor|testImplementation\()(.*?\:)'
-          index: 0
-          trim:
-            - 'annotationProcessor'
-            - 'implementation'
-            - 'testAnnotationProcessor'
-            - 'testImplementation'
-            - '("'
-            - '(\'''
-            - ':'
+          pattern: '^\s*(annotationProcessor|implementation|testAnnotationProcessor|testImplementation)\("([^:]+):[^:]+:[^"]+"\)'
+          index: 2
         - key: name
-          pattern: '(?=annotationProcessor|implementation|testAnnotationProcessor|testImplementation\()(.*\:)'
-          index: 0
-          trim:
-            - 'annotationProcessor'
-            - 'implementation'
-            - 'testAnnotationProcessor'
-            - 'testImplementation'
-            - '("'
-            - '(\'''
-            - ':'
+          pattern: '^\s*(annotationProcessor|implementation|testAnnotationProcessor|testImplementation)\("[^:]+:([^:]+):[^"]+"\)'
+          index: 2
         - key: version
-          pattern: '(?=annotationProcessor|implementation|testAnnotationProcessor|testImplementation\()(.*\")'
-          index: 0
-          trim:
-            - 'annotationProcessor'
-            - 'implementation'
-            - 'testAnnotationProcessor'
-            - 'testImplementation'
-            - '("'
-            - '(\'''
-            - ':'
-            - '"'
+          pattern: '^\s*(annotationProcessor|implementation|testAnnotationProcessor|testImplementation)\("[^:]+:[^:]+:([^"]+)"\)'
+          index: 2
       uris:
         - uri: https://repo.maven.apache.org/maven2/{group}/{name}/maven-metadata.xml
           source: Maven Central Repo
@@ -220,35 +177,22 @@ versions:
         - versions.properties
       read:
         - key: key
-          pattern: '^(plugin)\.'
-          index: 0
-          trim:
-            - '.'
+          pattern: '^(\w+)\.[^=]+='
+          index: 1
         - key: id
-          pattern: '.*?\='
-          index: 0
-          trim:
-            - 'plugin.'
-            - '='
+          pattern: 'plugin\.([^.=]+(?:\.[^.=]+)*)='
+          index: 1
         - key: uri
           value: 'https://plugins.gradle.org/plugin/'
         - key: group
-          pattern: '(.*)(?=classpath\s\")(.*?\:)'
-          index: 0
-          trim:
-            - 'classpath "'
-            - ':'
+          pattern: 'classpath\("([^:]+):[^:]+:[^"]+"\)'
+          index: 1
         - key: name
-          pattern: '(.*)(?=classpath\s\")(.*\:)'
-          index: 0
-          trim:
-            - 'classpath "'
-            - ':'
+          pattern: 'classpath\("[^:]+:([^:]+):[^"]+"\)'
+          index: 1
         - key: version
-          pattern: '=\s*(.*)'
-          index: 0
-          trim:
-            - '='
+          pattern: '=([\d.]+)'
+          index: 1
       uris:
         - uri: https://plugins.gradle.org/m2/{group}/{name}/maven-metadata.xml
           source: Gradle Plugins Repo
@@ -271,36 +215,22 @@ versions:
         - settings.gradle.kts
       read:
         - key: key
-          pattern: '^(\s*)(id)\('
-          index: 0
-          trim:
-            - '('
+          pattern: '^\s*(\w+)\('
+          index: 1
         - key: id
-          pattern: '(\(\")(.*?\"\))'
-          index: 0
-          trim:
-            - '('
-            - '"'
-            - ')'
+          pattern: 'id\("([^"]+)"\)'
+          index: 1
         - key: uri
           value: 'https://plugins.gradle.org/plugin/'
         - key: group
-          pattern: '(.*)(?=classpath\s\")(.*?\:)'
-          index: 0
-          trim:
-            - 'classpath "'
-            - ':'
+          pattern: 'classpath\("([^:]+):[^:]+:[^"]+"\)'
+          index: 1
         - key: name
-          pattern: '(.*)(?=classpath\s\")(.*\:)'
-          index: 0
-          trim:
-            - 'classpath "'
-            - ':'
+          pattern: 'classpath\("[^:]+:([^:]+):[^"]+"\)'
+          index: 1
         - key: version
-          pattern: '(\s)(\")(.*?\")'
-          index: 0
-          trim:
-            - '"'
+          pattern: 'version\s+"([^"]+)"'
+          index: 1
       uris:
         - uri: https://plugins.gradle.org/m2/{group}/{name}/maven-metadata.xml
           source: Gradle Plugins Repo
@@ -323,20 +253,14 @@ versions:
         - gradle/wrapper/gradle-wrapper.properties
       read:
         - key: key
-          pattern: '^(distributionUrl)\='
-          index: 0
-          trim:
-            - '='
+          pattern: '^([a-zA-Z0-9]+)='
+          index: 1
         - key: uri
-          pattern: '(?=\=)(.+)(?=\/gradle-)'
-          index: 0
-          trim:
-            - '='
+          pattern: 'distributionUrl=([^\s]+)/(gradle-[^/]+\.zip)'
+          index: 1
         - key: version
-          pattern: '(?=gradle\-)(.+)(?=\-(.*).zip)'
-          index: 0
-          trim:
-            - 'gradle-'
+          pattern: 'gradle-([0-9.]+)-all\.zip'
+          index: 1
       uris:
         - uri: https://services.gradle.org/versions/current
           source: Gradle Services
@@ -351,7 +275,6 @@ versions:
     # Maven Dependencies and Plugins
     # -----------------------------------------------------------
     - name: Maven Dependencies and Plugins
-      enabled: false
       types:
         - Maven Dependency
         - Maven Nexus Dependency
@@ -361,24 +284,18 @@ versions:
       files:
         - pom.xml
       read:
+        - key: key
+          pattern: '<([a-zA-Z0-9_-]+)>[^<]*</\1>'
+          index: 1
         - key: group
-          pattern: '(?<=groupId\>)(.+)(?=\<)'
-          index: 0
-          trim:
-            - '<groupId>'
-            - '</groupId>'
+          pattern: '<groupId>([^<]+)</groupId>'
+          index: 1
         - key: name
-          pattern: '(?<=artifactId\>)(.+)(?=\<)'
-          index: 0
-          trim:
-            - '<artifactId>'
-            - '</artifactId>'
+          pattern: '<artifactId>([^<]+)</artifactId>'
+          index: 1
         - key: version
-          pattern: '(?<=version\>)(.+)(?=\<)'
-          index: 0
-          trim:
-            - '<version>'
-            - '</version>'
+          pattern: '<version>([^<]+)</version>'
+          index: 1
       uris:
         - uri: https://repo.maven.apache.org/maven2/{group}/{name}/maven-metadata.xml
           source: Maven Central Repo
@@ -416,10 +333,8 @@ versions:
         - .mvn/wrapper/maven-wrapper.properties
       read:
         - key: version
-          pattern: '(?=maven-wrapper\-)(.+)(?=.jar)'
-          index: 0
-          trim:
-            - 'maven-wrapper-'
+          pattern: 'maven-wrapper-([0-9.]+)\.jar'
+          index: 1
       uris:
         - uri: https://repo.maven.apache.org/maven2/org/apache/maven/wrapper/maven-wrapper/maven-metadata.xml
           source: Maven Central Repo
@@ -439,10 +354,8 @@ versions:
         - .mvn/wrapper/maven-wrapper.properties
       read:
         - key: version
-          pattern: '(?=apache-maven\-)(.+)(?=\-bin.zip)'
-          index: 0
-          trim:
-            - 'apache-maven-'
+          pattern: 'apache-maven-([0-9.]+)-bin\.zip'
+          index: 1
       uris:
         - uri: https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/maven-metadata.xml
           source: Maven Central Repo
