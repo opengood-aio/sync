@@ -1,0 +1,18 @@
+name: coverage
+
+on:
+  workflow_dispatch:
+    schedule:
+      # Automatically run every Sunday at midnight
+      - cron: '0 0 * * 0'
+    branches:
+      - main
+
+jobs:
+  coverage:
+    uses: opengood-aio/central-workflows/.github/workflows/java-kotlin-code-coverage.yml@main
+    with:
+      run-code-coverage: true
+      run-gradle-validation: true
+    secrets:
+      codecov-token: ${{ secrets.CODECOV_TOKEN }}

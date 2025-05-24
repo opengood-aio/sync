@@ -16,6 +16,4 @@ on:
 
 jobs:
   build:
-    uses: opengood-aio/central-workflows/.github/workflows/codeql-analyze.yml@main
-    with:
-      java-version: 21
+    uses: opengood-aio/central-workflows/.github/workflows/java-kotlin-codeql-analyze.yml@main
